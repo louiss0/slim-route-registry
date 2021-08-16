@@ -134,6 +134,7 @@ trait ResourceRegistration
                     "path" => $path,
                     "name" => $name,
                     "callback" => $callback,
+                    "middleware" => $middleware,
                 ] = $value;
 
 
@@ -143,10 +144,12 @@ trait ResourceRegistration
                     ->setName($name);
 
 
-                self::registerMiddlewareThatUsesTheMiddlwareInterface(
-                    $attribute_instances,
-                    $current_route
-                );
+                $middleware
+                    ->each(
+                        fn ($middleware) =>
+                        $current_route->addMiddleware($middleware)
+                    );
+
 
                 self::registerMiddlewareIfUseMiddlewareOn(
                     $attribute_instances,

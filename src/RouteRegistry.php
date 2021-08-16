@@ -146,7 +146,8 @@ final class RouteRegistry
                 self::$constructor_attribute_instances =
                     self::$constructor_attribute_instances
                     ->merge($reflection->getAttributes())
-                    ->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
+                    ->map(fn (ReflectionAttribute $attribute) =>
+                    $attribute->newInstance());
 
 
                 $methods->each(
@@ -154,7 +155,11 @@ final class RouteRegistry
                     use ($class_name, $group, $path) {
                         # code...
 
-                        $methodAttributes = collect($method->getAttributes());
+                        $method_attribute_instances = collect($method->getAttributes())
+                            ->map(
+                                fn (ReflectionAttribute $attribute) =>
+                                $attribute->newInstance()
+                            );
                         $methodName = $method->getName();
 
 
@@ -210,10 +215,7 @@ final class RouteRegistry
                         if ($current_route) {
 
                             self::registerMiddlewareThatUsesTheMiddlwareInterface(
-                                $methodAttributes->map(
-                                    fn (ReflectionAttribute $attribute) =>
-                                    $attribute->newInstance()
-                                ),
+                                $method_attribute_instances,
                                 $current_route
                             );
                             # code...
@@ -235,13 +237,12 @@ final class RouteRegistry
 
 
                         self::alterRouteMapIfRouteMethodAttributeExists(
-                            $methodAttributes,
+                            $method_attribute_instances,
                             self::$route_group_map,
-                            $method
+                            $methodName
                         );
                     }
                 );
-
 
 
 

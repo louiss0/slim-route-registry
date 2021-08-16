@@ -35,6 +35,15 @@
         - [UseMiddlewareOn](#usemiddlewareon)
         - [UseMiddlewareExceptFor](#usemiddlewareexceptfor)
 
+
+- [Automatic Registration Methods](#automatic-registration-methods) 
+
+- [Contracts](#contracts)
+
+    - [CRUD Controller Contract](#crud-controller-contract)
+
+    - [Resource Controller Contract](#resource-controller-contract)
+
 ## [Route Registry Class](#sections)
 
 ```php
@@ -217,3 +226,61 @@
     1. The middleware attributes on a class will be registered before the ones applied using the UseMiddlewareAttributes
 
     1. The UseMiddlewareExceptForAttribute will be the last one to register any middleware 
+
+<br>
+
+### [Automatic Registration Methods](#sections)
+
+
+- When you use a controller you can use six methods that automatically get registered to a http method
+
+- These methods cannot be altered by the RouteGroupMethodAttribute at all
+
+- You can use dependency injection to get what you want or use contracts 
+
+| Method| Http Method | Path | 
+|------|------|------ |
+| index| Get  | ""
+| store| Post  | ""
+| show | Get  | "/{id:\d+}"
+| update| Patch  | "/{id:\d+}"
+| upsert| Put  | ""
+| destroy| Delete  | "/{id:\d+}"
+
+
+### [Contracts](#sections)
+
+- Contracts are just interfaces that allow you to apply the Automatic Registration Methods in a conventional way . That means you don't have to use them
+
+#### [CRUD Controller Contract](#sections)
+```php
+
+interface CRUDControllerContract
+{
+
+    const INDEX = "index";
+    const SHOW = "show";
+    const STORE = "store";
+    const DESTROY = "destroy";
+    const UPDATE = "update";
+
+    public function index(ServerRequest $request, Response $response): Response;
+    public function show(int $id, Response $response): Response;
+    public function store(ServerRequest $request, Response $response): Response;
+    public function update(int $id, Response $response): Response;
+    public function destroy(int $id, Response $response): Response;
+}
+
+```
+
+
+#### [Resource Controller Contract](#sections)
+
+```php
+interface ResourceControllerContract extends CRUDControllerContract
+{
+
+    public const UPSERT = "upsert";
+    public function upsert(ServerRequest $request, Response $response): Response;
+}
+```
