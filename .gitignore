@@ -2,3 +2,5 @@ vendor
 
 src/controllers
 src/middleware
+
+.phpunit.result.cache

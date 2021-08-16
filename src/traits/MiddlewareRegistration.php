@@ -26,11 +26,13 @@ trait  MiddlewareRegistration
             $attribute_instance instanceof UseMiddleWareOn,
         );
 
+
+
         $use_middleware_on_attributes_array_is_not_empty =
 
             $use_middleware_on_attributes_array->isNotEmpty();
 
-        if ($use_middleware_on_attributes_array_is_not_empty && $route) {
+        if ($use_middleware_on_attributes_array_is_not_empty) {
             # code...
 
             $use_middleware_on_attributes_array->each(
@@ -71,6 +73,7 @@ trait  MiddlewareRegistration
         # code...
 
 
+
         $use_middleware_except_for_attributes_array = $attribute_instances->filter(
             fn (string| object $attribute_instance) =>
             $attribute_instance instanceof UseMiddleWareExceptFor
@@ -79,7 +82,7 @@ trait  MiddlewareRegistration
 
         $use_middleware_except_for_attributes_array_is_not_empty = $use_middleware_except_for_attributes_array->isNotEmpty();
 
-        if ($use_middleware_except_for_attributes_array_is_not_empty && $route) {
+        if ($use_middleware_except_for_attributes_array_is_not_empty) {
             # code...
 
 
@@ -113,14 +116,14 @@ trait  MiddlewareRegistration
 
 
     private static function registerMiddlewareThatUsesTheMiddlwareInterface(
-        Collection $attributeCollection,
+        Collection $attribute_instances,
         RouteGroupInterface | RouteInterface $routeCreator,
     ): void {
         # code...
 
 
 
-        $attributeCollection
+        $attribute_instances
             ->filter(fn (object $object) =>
             $object instanceof MiddlewareInterface)
             ->each(fn (MiddlewareInterface $middleware) =>

@@ -25,8 +25,7 @@ trait AlterRouteGroupMapTrait
 
         $route_group_method_attribute =
             $method_attribute_instances
-            ->first(fn (object $instance) => $instance instanceof RouteMethod)
-            ?->newInstance();
+            ->first(fn (object $instance) => $instance instanceof RouteMethod);
 
 
 

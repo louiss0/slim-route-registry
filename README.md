@@ -232,7 +232,7 @@
 ### [Automatic Registration Methods](#sections)
 
 
-- When you use a controller you can use six methods that automatically get registered to a http method
+- When you use a controller you can use six methods that automatically get registered to a http method When registered as a resource Controller
 
 - These methods cannot be altered by the RouteGroupMethodAttribute at all
 
