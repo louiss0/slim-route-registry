@@ -1,0 +1,40 @@
+{
+    "name": "louiss0/slim-route-registry",
+    "description": "This package allows you to register routes and create resource controllers using  attributes php",
+    "type": "library",
+    "require": {
+        "php": "^8.0",
+        "slim/psr7": "^1.4",
+        "slim/slim": "^4.7.0",
+        "slim/http": "^1.2",
+        "illuminate/support": "^8.50.0"
+    },
+    "require-dev": {
+        "php-di/slim-bridge": "^3.0.0",
+        "phpunit/phpunit": "^9"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Louiss0\\SlimRouteRegistry\\": [
+                "./src",
+                "var/www/html/"
+            ]
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Louiss0\\SlimRouteRegistry\\": "./tests/"
+        }
+    },
+    "scripts": {
+        "phpunit": "./vendor/bin/phpunit"
+    }, 
+    "authors": [
+        {
+            "name": "Shelton Louis",
+            "email": "louisshelton0@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
