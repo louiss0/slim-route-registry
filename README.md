@@ -1,5 +1,6 @@
 # Slim  Route Registry Library
-&nbsp;
+<br>  
+
 ## Usage 
 - The route registry library is made for slim it allows the user to create controllers that have attributes placed on them called resource controllers
 
@@ -8,6 +9,33 @@
 - You also have access to the original rest methods from Slim except the map method
 
 - The main class is called the route registry class with three setup methods resources and resource
+
+<br>
+
+## Sections
+
+- [Route Registry Class](#route-registry-class)
+    - [Setup](#setup)
+    - [Resource](#resource)
+    - [Resources](#resources)
+
+- [Attributes](#attributes)
+    
+    - [Route Method Attributes](#route-method-attributes)
+        
+        - [RouteMethod](#routemethod)
+        - [Get](#get)
+        - [Post](#post)
+        - [Patch](#patch)
+        - [Put](#put)
+        - [Delete](#delete)
+        
+    - [Use Middleware Attributes](#use-middleware-attributes)
+        
+        - [UseMiddlewareOn](#usemiddlewareon)
+        - [UseMiddlewareExceptFor](#usemiddlewareexceptfor)
+
+## [Route Registry Class](#sections)
 
 ```php
 
@@ -20,24 +48,27 @@
         ["path"=> string, "resources"=> string] 
         $array_of_resource_options): void
 ```
-&nbsp;
-#### Setup
+<br>  
+
+#### [Setup](#sections)
     - The setup method takes in the app or a route group collector proxy.
     - It should be used before resource and resources. 
-&nbsp;
-#### Resource
+<br>  
+
+#### [Resource](#sections)
     - It takes in a path string and a class to use as a string
     
     - You must use the class name as the second parameter
 
     - This method returns nothing to register middleware use middleware as attributes on a method or use the UseMiddlewareOn on and UseMiddlewareExceptForAttributes 
-&nbsp;
-#### Resources
+<br>  
+
+#### [Resources](#sections)
     - It takes in an array of paths and resources
     - The resource method will be called on all of the paths and resources passed through
 
 
-## Attributes
+## [Attributes](#sections)
 
     - Attributes are the bread and butter of your app
 
@@ -49,7 +80,7 @@
         - Each middleware must use the Psr\Http\Server\MiddlewareInterface or else it won't work   
 
 
-### RouteMethodAttributes
+### [Route Method Attributes](#sections)
 
 - RouteMethodAttributes can only be used on methods
 
@@ -57,12 +88,16 @@
 
 - They take a path name and method
     
-    - path : an absolute path string 
-    - name : the name of the route 
-    - method : the name of an http method you are going to connect the method to
+    - path 
+        : an absolute path string 
+    - name 
+        : the name of the route 
+    - method 
+        : the name of an http method you are going to connect the method to
     
-&nbsp;
-- RouteMethod
+<br>  
+
+- #### [RouteMethod](#sections)
     
     ```php
         RouteMethod(path:string, name:string, method:string)
@@ -70,26 +105,10 @@
     ```
     - This attribute does everything mentioned in the route attributes section 
 
-&nbsp;
-- RouteMethod
-    
-    ```php
-        RouteMethod(path:string, name:string, method:string)
-    
-    ```
-    - This attribute does everything mentioned in the route attributes section 
+<br>  
 
-&nbsp;
-- RouteMethod
-    
-    ```php
-        RouteMethod(path:string, name:string, method:string)
-    
-    ```
-    - This attribute does everything mentioned in the route attributes section 
 
-&nbsp;
-- Get
+- #### [Get](#sections)
     
     ```php
         Get(path:string, name:string,)
@@ -97,9 +116,10 @@
     ```
     - This attribute registers a get http method using the path and name   
 
-&nbsp;
+<br>  
+
           
-- Post
+- #### [Post](#sections)
     
     ```php
         Post(path:string, name:string,)
@@ -107,9 +127,10 @@
     ```
     - This attribute registers a post http method using the path and name   
 
-&nbsp;
+<br>  
+
      
-- Patch
+- #### [Patch](#sections)
     
     ```php
         Patch(path:string, name:string,)
@@ -117,9 +138,10 @@
     ```
     - This attribute registers a patch http method using the path and name   
 
-&nbsp;
+<br>  
+
      
-- Put
+- #### [Put](#sections)
     
     ```php
         Put(path:string, name:string,)
@@ -127,9 +149,10 @@
     ```
     - This attribute registers a put http method using the path and name   
 
-&nbsp;
+<br>  
 
-- Delete
+
+- #### [Delete](#sections)
     
     ```php
         Delete(path:string, name:string,)
@@ -137,6 +160,60 @@
     ```
     - This attribute registers a delete http method using the path and name   
 
-&nbsp;
-     
+<br>  
 
+### [Use Middleware Attributes](#sections)
+
+- The use middleware attributes are each used to tell the controller what methods to place middleware in front of.
+
+- They must be put on top of the class to work
+
+    - ```php
+
+            #[UseMiddlewareOn(method_names:["delete"] , middleware:[AuthMiddleware::class] )]
+                class UserController {}
+      ```
+- These attributes can be repeated multiple times
+
+- The middleware in these attributes will be registered after all the middleware attributes that were used on each method 
+
+- They each take two parameters 
+
+    - method_names 
+        : The name of the methods you want to use 
+    
+    - middleware 
+        : The array of middleware that are going to be used 
+            - ! they must be passed as strings
+<br>  
+
+- #### [UseMiddlewareOn](#sections)
+
+    ```php
+    UseMiddlewareOn(method_names: string[], middleware:string[])
+    
+    ```
+    - This Attribute will tell the resource method to
+    register middleware to all the methods with the name specified in the method names parameter  
+
+<br>  
+
+- #### [UseMiddlewareExceptFor](#sections)
+
+    ```php
+    UseMiddlewareExceptFor(method_names: string[], middleware:string[])
+    
+    ```
+    - This Attribute will tell the resource method to
+    register middleware to all the methods with the name not specified in the method names parameter  
+
+<br>  
+
+
+- #### [Remember These Rules](#sections) 
+
+    1. The middleware added to the class itself will be registered before the ones on each Method
+
+    1. The middleware attributes on a class will be registered before the ones applied using the UseMiddlewareAttributes
+
+    1. The UseMiddlewareExceptForAttribute will be the last one to register any middleware 
