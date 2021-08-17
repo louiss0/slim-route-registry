@@ -221,9 +221,9 @@
 
 - #### [Remember These Rules](#sections) 
 
-    1. The middleware added to the class itself will be registered before the ones on each Method
+    1. The middleware added to the class itself will be registered after the ones on each Method
 
-    1. The middleware attributes on a class will be registered before the ones applied using the UseMiddlewareAttributes
+    1. The middleware attributes on a class will be registered after the ones applied using the UseMiddlewareAttributes
 
     1. The UseMiddlewareExceptForAttribute will be the last one to register any middleware 
 

@@ -7,7 +7,7 @@ use Attribute;
 use Louiss0\SlimRouteRegistry\Enums\RouteMethodNames;
 
 #[Attribute(Attribute::TARGET_METHOD)]
-class Delete extends RouteMethod
+final class Delete extends RouteMethod
 {
 
 

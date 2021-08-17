@@ -7,7 +7,7 @@ namespace Louiss0\SlimRouteRegistry\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-class UseMiddleWareOn
+final class UseMiddleWareOn
 {
 
 
