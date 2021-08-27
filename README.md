@@ -8,7 +8,7 @@
 
 - You also have access to the original rest methods from Slim except the map method
 
-- The main class is called the route registry class with three setup methods resources and resource
+- The main class is called the route registry class with three methods setup resources and resource
 
 <br>
 
