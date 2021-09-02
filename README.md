@@ -55,7 +55,7 @@
 
     RouteRegistry::resources(
         ["path"=> string, "resources"=> string] 
-        $array_of_resource_options): void
+        ...$array_of_resource_options): void
 ```
 <br>  
 
@@ -73,7 +73,7 @@
 <br>  
 
 #### [Resources](#sections)
-    - It takes in an array of paths and resources
+    - It takes in any number of paths and resources
     - The resource method will be called on all of the paths and resources passed through
 
 
@@ -238,9 +238,9 @@
 
 - You can use dependency injection to get what you want or use contracts 
 
-| Method| Http Method | Path | 
+|Class Method| Http Method | Path | 
 |------|------|------ |
-| index| Get  | ""
+| index| Get  |  ""
 | store| Post  | ""
 | show | Get  | "/{id:\d+}"
 | update| Patch  | "/{id:\d+}"
