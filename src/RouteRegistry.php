@@ -23,7 +23,6 @@ final class RouteRegistry
     public static App | RouteCollectorProxyInterface $app;
 
     protected static Collection $route_group_map;
-    protected static Collection $constructor_attribute_instances;
 
 
     use ResourceRegistration,
@@ -39,7 +38,6 @@ final class RouteRegistry
 
         self::$route_group_map = collect([]);
 
-        self::$constructor_attribute_instances = collect([]);
 
 
         return $app;
@@ -128,9 +126,15 @@ final class RouteRegistry
         # code...
 
 
+        $constructor_attribute_instances = collect([]);
+
         $group = self::$app->group(
             $path,
-            function (RouteCollectorProxy $group) use ($class, $path) {
+            function (RouteCollectorProxy $group) use (
+                $class,
+                $path,
+                $constructor_attribute_instances
+            ) {
 
 
                 $path = str_replace("/", "", $path);
@@ -143,8 +147,8 @@ final class RouteRegistry
                 $class_name =
                     $reflection->getName();
 
-                self::$constructor_attribute_instances =
-                    self::$constructor_attribute_instances
+                $constructor_attribute_instances =
+                    $constructor_attribute_instances
                     ->merge($reflection->getAttributes())
                     ->map(fn (ReflectionAttribute $attribute) =>
                     $attribute->newInstance());
@@ -152,7 +156,12 @@ final class RouteRegistry
 
                 $methods->each(
                     function (ReflectionMethod $method)
-                    use ($class_name, $group, $path) {
+                    use (
+                        $class_name,
+                        $group,
+                        $path,
+                        $constructor_attribute_instances
+                    ) {
                         # code...
 
                         $method_attribute_instances = collect($method->getAttributes())
@@ -221,7 +230,7 @@ final class RouteRegistry
                             # code...
 
                             self::registerMiddlewareIfUseMiddlewareOn(
-                                self::$constructor_attribute_instances,
+                                $constructor_attribute_instances,
                                 $current_route,
                                 $methodName
                             );
@@ -229,7 +238,7 @@ final class RouteRegistry
 
 
                             return self::registerMiddlewareIfUseMiddleWareExceptFor(
-                                self::$constructor_attribute_instances,
+                                $constructor_attribute_instances,
                                 $current_route,
                                 $methodName
                             );
@@ -248,7 +257,7 @@ final class RouteRegistry
 
                 self::registerRouteMethods(
                     $class_name,
-                    self::$constructor_attribute_instances,
+                    $constructor_attribute_instances,
                     $group
                 );
             }
@@ -259,10 +268,10 @@ final class RouteRegistry
         );
 
 
-        if (self::$constructor_attribute_instances->isNotEmpty()) {
+        if ($constructor_attribute_instances->isNotEmpty()) {
 
             self::registerMiddlewareThatUsesTheMiddlwareInterface(
-                self::$constructor_attribute_instances,
+                $constructor_attribute_instances,
                 $group
             );
             # code...
@@ -277,7 +286,7 @@ final class RouteRegistry
      *  If you want to use any middleware on the resources Decorate the methods you want to use them on, Or! 
      * Use the UseMiddlewareExceptFor or UseMiddlewareOn attributes on the resource you want to use it on.  
      */
-    public static function resources(array $array_of_resource_options): void
+    public static function resources(...$array_of_resource_options): void
     {
         # code...
 

@@ -4,10 +4,7 @@
 namespace Louiss0\SlimRouteRegistry\Traits;
 
 use Illuminate\Support\Collection;
-use ReflectionAttribute;
-use ReflectionMethod;
 use Louiss0\SlimRouteRegistry\Attributes\RouteMethod;
-use PhpParser\Node\Expr\Instanceof_;
 use Psr\Http\Server\MiddlewareInterface;
 
 trait AlterRouteGroupMapTrait
