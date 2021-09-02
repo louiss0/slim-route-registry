@@ -232,20 +232,22 @@
 ### [Automatic Registration Methods](#sections)
 
 
-- When you use a controller you can use six methods that automatically get registered to a http method When registered as a resource Controller
+- When you use a controller you can create six methods that automatically get registered to a http method When registered as a resource Controller
 
 - These methods cannot be altered by the RouteGroupMethodAttribute at all
 
 - You can use dependency injection to get what you want or use contracts 
 
-|Class Method| Http Method | Path | 
-|------|------|------ |
-| index| Get  |  ""
-| store| Post  | ""
-| show | Get  | "/{id:\d+}"
-| update| Patch  | "/{id:\d+}"
-| upsert| Put  | ""
-| destroy| Delete  | "/{id:\d+}"
+- The **group path** is the path used as the first argument to the resource method minus the  ` / `  
+
+|Class Method| Http Method | Path | Route Name | 
+|------|------|------ | ----- |
+| index| Get  |  ""   | {{group path}}.index|
+| store| Post | "" |{{group path}}.store
+| show | Get  | "/{id:\d+}"| {{group path}}.show|
+| update| Patch  | "/{id:\d+}"|{{group path}}.update|
+| upsert| Put  | ""|{{group path}}.upsert|
+| destroy| Delete  | "/{id:\d+}"| {{group path}}.destroy
 
 
 ### [Contracts](#sections)
