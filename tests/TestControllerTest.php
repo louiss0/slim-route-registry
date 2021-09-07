@@ -18,13 +18,14 @@ class TestControllerTest extends TestCase
         # code...
 
         $app = $this->getApp();
-        $res = RouteRegistry::setup($app);
+
+        RouteRegistry::setup($app);
 
         RouteRegistry::resource("/test", TestController::class);
 
 
 
-        $routes = collect($res->getRouteCollector()->getRoutes());
+        $routes = collect(RouteRegistry::getRoutes());
 
 
         return $routes;
@@ -101,17 +102,17 @@ class TestControllerTest extends TestCase
 
 
 
-            return [$value->getName(), $value->getMethods()];
+            return $value->getMethods();
         })->all();
 
 
         $expectedRouteNamesAndMethods = [
-            "route0" => ["test.index", ["GET"]],
-            "route1" => ["test.show", ["GET"]],
-            "route2" => ["test.store", ["POST"]],
-            "route3" => ["test.upsert", ["PUT"]],
-            "route4" => ["test.update", ["PATCH"]],
-            "route5" => ["test.destroy", ["DELETE"]],
+            "route0" =>  ["GET"],
+            "route1" => ["GET"],
+            "route2" =>  ["POST"],
+            "route3" =>  ["PUT",],
+            "route4" =>  ["PATCH"],
+            "route5" =>  ["DELETE"],
         ];
 
         $this->assertSame($expectedRouteNamesAndMethods, $routeNamesAndMethods);

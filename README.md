@@ -17,6 +17,7 @@
 - [Route Registry Class](#route-registry-class)
     - [Setup](#setup)
     - [Resource](#resource)
+    - [Group](#group)
     - [Resources](#resources)
 
 - [Attributes](#attributes)
@@ -51,6 +52,9 @@
     RouteRegistry::setup( App | RouteCollectorProxyInterface $app
     ):App | RouteCollectorProxyInterface 
 
+
+    RouteRegistry::group(string $path, Closure $callback);
+
     RouteRegistry::resource(string $path, string $class): void
 
     RouteRegistry::resources(
@@ -75,6 +79,14 @@
 #### [Resources](#sections)
     - It takes in any number of paths and resources
     - The resource method will be called on all of the paths and resources passed through
+
+#### [Group](#sections)
+
+- It takes in a path first and a closure second
+
+- If you used slim without this library you should expect to get a group as the parameter that is passed in to the function. But that is not the case, because the setup function will be called and it will be passed the route collector proxy 
+
+- That means that when you call any methods from within the callback function of the route group they will be scoped to that route.
 
 
 ## [Attributes](#sections)

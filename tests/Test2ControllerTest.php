@@ -24,7 +24,8 @@ class Test2ControllerTest extends TestCase
 
 
 
-        $routes = collect($res->getRouteCollector()->getRoutes());
+
+        $routes = collect(RouteRegistry::getRoutes());
 
 
         return $routes;
@@ -101,17 +102,17 @@ class Test2ControllerTest extends TestCase
 
 
 
-            return [$value->getName(), $value->getMethods()];
+            return $value->getMethods();
         })->all();
 
 
         $expectedRouteNamesAndMethods = [
-            "route0" => ["get.all", ["GET"]],
-            "route1" => ["get.one", ["GET"]],
-            "route2" => ["create", ["POST"]],
-            "route3" => ["update.or.create", ["PUT"]],
-            "route4" => ["update.one", ["PATCH"]],
-            "route5" => ["destroy.one", ["DELETE"]],
+            "route0" => ["GET"],
+            "route1" => ["GET"],
+            "route2" => ["POST"],
+            "route3" => ["PUT"],
+            "route4" => ["PATCH"],
+            "route5" => ["DELETE"],
         ];
 
         $this->assertSame($expectedRouteNamesAndMethods, $routeNamesAndMethods);
@@ -126,11 +127,7 @@ class Test2ControllerTest extends TestCase
         $routes = $this->getRoutesRegisteredFromTest2Controller();
 
 
-        $routePatterns = $routes->map(function (RouteInterface $value) {
-
-
-            return $value->getPattern();
-        })->all();
+        $routePatterns = $routes->map($this->getGetRoutePatternClosure())->all();
 
 
         $expectedPatterns = [
@@ -143,5 +140,55 @@ class Test2ControllerTest extends TestCase
         ];
 
         $this->assertSame($expectedPatterns, $routePatterns);
+    }
+
+
+
+
+    public function getGetRoutePatternClosure()
+    {
+        # code...
+
+        return function (RouteInterface $value) {
+
+
+            return $value->getPattern();
+        };
+    }
+
+
+    public function testRouteRegistryWillRegisterTestSubRoutesToGroup()
+    {
+        # code...
+
+        RouteRegistry::group("/api", function () {
+
+
+            RouteRegistry::resource("/test2", Test2Controller::class);
+        });
+
+        $routes = collect(RouteRegistry::getRoutes());
+
+
+
+        $routePatterns = $routes->map($this->getGetRoutePatternClosure())->all();
+
+
+        $expectedPatterns = [
+            "route0" => "/test",
+            "route1" => "/test/{id:\d+}",
+            "route2" => "/test",
+            "route3" => "/test",
+            "route4" => "/test/{id:\d+}",
+            "route5" => "/test/{id:\d+}",
+            'route6' => '/api/test2',
+            'route7' => '/api/test2/{id:\d+}',
+            'route8' => '/api/test2',
+            'route9' => '/api/test2',
+            'route10' => '/api/test2/{id:\d+}',
+            'route11' => '/api/test2/{id:\d+}',
+        ];
+
+        $this->assertEquals($expectedPatterns, $routePatterns);
     }
 }
