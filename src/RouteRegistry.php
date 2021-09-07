@@ -7,6 +7,7 @@ namespace  Louiss0\SlimRouteRegistry;
 use Closure;
 use Exception;
 use Illuminate\Support\Collection;
+use Louiss0\SlimRouteRegistry\Enums\BasicRouteMethodNames;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
@@ -37,14 +38,23 @@ final class RouteRegistry
         self::$app = $app;
 
         self::$route_group_map = collect([]);
-
-
-
-        return $app;
     }
 
 
-    public static function get(string $pattern, callable $callable)
+
+    public static function getRoutes()
+    {
+
+
+        return self::$app->getRouteCollector()->getRoutes();
+    }
+
+
+
+
+
+
+    public static function get(string $pattern, callable | array $callable)
     {
         # code...
 
@@ -52,42 +62,42 @@ final class RouteRegistry
     }
 
 
-    public static function post(string $pattern, callable $callable)
+    public static function post(string $pattern, callable | array $callable)
     {
         # code...
 
         return self::$app->post($pattern, $callable);
     }
 
-    public static function patch(string $pattern, callable $callable)
+    public static function patch(string $pattern, callable | array $callable)
     {
         # code...
 
         return self::$app->patch($pattern, $callable);
     }
 
-    public static function delete(string $pattern, callable $callable)
+    public static function delete(string $pattern, callable | array $callable)
     {
         # code...
 
         return self::$app->delete($pattern, $callable);
     }
 
-    public static function put(string $pattern, callable $callable)
+    public static function put(string $pattern, callable | array $callable)
     {
         # code...
 
         return self::$app->put($pattern, $callable);
     }
 
-    public static function any(string $pattern, callable $callable)
+    public static function any(string $pattern, callable | array $callable)
     {
         # code...
 
         return self::$app->any($pattern, $callable);
     }
 
-    public static function options(string $pattern, callable $callable)
+    public static function options(string $pattern, callable | array $callable)
     {
         # code...
 
@@ -104,11 +114,14 @@ final class RouteRegistry
     {
         # code...
 
-        return self::$app->group($path, function (RouteCollectorProxy $group) use ($callable) {
-            # code...
-
-            $callable($group);
-        });
+        return self::$app->group(
+            $path,
+            function (RouteCollectorProxy $group) use ($callable) {
+                # code..
+                self::setup($group);
+                $callable();
+            }
+        );
     }
 
 
@@ -174,42 +187,42 @@ final class RouteRegistry
 
                         $current_route = match ($methodName) {
 
-                            "index" =>
+                            BasicRouteMethodNames::GET_ANY =>
                             self::registerGetAllRoutes(
                                 $path,
                                 $methodName,
                                 $class_name,
                                 $group
                             ),
-                            "show" =>
+                            BasicRouteMethodNames::GET_ONE =>
                             self::registerGetOneRoutes(
                                 $path,
                                 $methodName,
                                 $class_name,
                                 $group
                             ),
-                            "store" =>
+                            BasicRouteMethodNames::CREATE_ONE =>
                             self::registerPostRoutes(
                                 $path,
                                 $methodName,
                                 $class_name,
                                 $group
                             ),
-                            "update" =>
+                            BasicRouteMethodNames::UPDATE_ONE =>
                             self::registerPatchRoutes(
                                 $path,
                                 $methodName,
                                 $class_name,
                                 $group
                             ),
-                            "upsert" =>
+                            BasicRouteMethodNames::UPDATE_OR_CREATE_ONE =>
                             self::registerPutRoutes(
                                 $path,
                                 $methodName,
                                 $class_name,
                                 $group
                             ),
-                            "destroy" =>
+                            BasicRouteMethodNames::DELETE_ONE =>
                             self::registerDeleteRoutes(
                                 $path,
                                 $methodName,

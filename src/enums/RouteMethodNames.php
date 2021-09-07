@@ -7,8 +7,6 @@ namespace Louiss0\SlimRouteRegistry\Enums;
 
 
 
-
-
 class RouteMethodNames
 {
 
