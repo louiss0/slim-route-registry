@@ -9,6 +9,9 @@
         "slim/http": "^1.2",
         "illuminate/support": "^8.50.0"
     },
+    "suggest": {
+        "php-di/slim-bridge": "Allows you to use Request or response injection, Request or response injection and controllers as services"
+    },
     "require-dev": {
         "php-di/slim-bridge": "^3.0.0",
         "phpunit/phpunit": "^9"
@@ -29,7 +32,10 @@
     },
     "scripts": {
         "phpunit": "./vendor/bin/phpunit"
-    }, 
+    },
+    "keywords": ["slim", "routing"],
+    "homepage": "https://github.com/louiss0/slim-route-registry",
+    "readme": "https://github.com/louiss0/slim-route-registry#slim--route-registry-library", 
     "authors": [
         {
             "name": "Shelton Louis",
