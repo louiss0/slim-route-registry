@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Louiss0\SlimRouteRegistry\Traits;
+namespace Louiss0\SlimRouteRegistry\Utils\Traits;
 
 use Illuminate\Support\Collection;
 use Slim\Interfaces\RouteInterface;
@@ -23,7 +23,7 @@ trait  MiddlewareRegistration
 
         $use_middleware_on_attributes_array = $attribute_instances->filter(
             fn (string | object $attribute_instance) =>
-            $attribute_instance instanceof UseMiddleWareOn,
+            is_a($attribute_instance, UseMiddleWareOn::class,)
         );
 
 
@@ -76,7 +76,7 @@ trait  MiddlewareRegistration
 
         $use_middleware_except_for_attributes_array = $attribute_instances->filter(
             fn (string| object $attribute_instance) =>
-            $attribute_instance instanceof UseMiddleWareExceptFor
+            is_a($attribute_instance, UseMiddleWareExceptFor::class)
         );
 
 
@@ -121,12 +121,8 @@ trait  MiddlewareRegistration
     ): void {
         # code...
 
-
-
         $attribute_instances
-            ->filter(fn (object $object) =>
-            $object instanceof MiddlewareInterface)
-            ->each(fn (MiddlewareInterface $middleware) =>
-            $routeCreator->addMiddleware($middleware));
+            ->filter(fn (object $object) => is_a($object, MiddlewareInterface::class))
+            ->each(fn (MiddlewareInterface $middleware) => $routeCreator->addMiddleware($middleware));
     }
 }

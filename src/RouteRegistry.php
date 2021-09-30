@@ -8,15 +8,19 @@ use Closure;
 use Exception;
 use Illuminate\Support\Collection;
 use Louiss0\SlimRouteRegistry\Enums\BasicRouteMethodNames;
+use Louiss0\SlimRouteRegistry\Utils\Classes\SuperGroup;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Routing\RouteCollectorProxy;
-use Louiss0\SlimRouteRegistry\Traits\AlterRouteGroupMapTrait;
-use Louiss0\SlimRouteRegistry\Traits\MiddlewareRegistration;
-use Louiss0\SlimRouteRegistry\Traits\ResourceRegistration;
+use Louiss0\SlimRouteRegistry\Utils\Traits\{
+    AlterRouteGroupMapTrait,
+    MiddlewareRegistration,
+    RouteRegistration,
+};
+use phpDocumentor\Reflection\Types\Null_;
 
 final class RouteRegistry
 {
@@ -25,8 +29,10 @@ final class RouteRegistry
 
     protected static Collection $route_group_map;
 
+    protected static SuperGroup $super_group;
 
-    use ResourceRegistration,
+
+    use RouteRegistration,
         MiddlewareRegistration,
         AlterRouteGroupMapTrait;
 
@@ -35,7 +41,12 @@ final class RouteRegistry
     ) {
         # code...
 
+
         self::$app = $app;
+
+
+        self::$super_group = new SuperGroup();
+
 
         self::$route_group_map = collect([]);
     }
@@ -44,6 +55,7 @@ final class RouteRegistry
 
     public static function getRoutes()
     {
+
 
 
         return self::$app->getRouteCollector()->getRoutes();
@@ -110,18 +122,26 @@ final class RouteRegistry
      *  This function registers a route Group 
      * 
      */
-    public static function group(string $path, Closure $callable)
+    public static function group(string $path, Closure | null $callable = null)
     {
         # code...
 
-        return self::$app->group(
-            $path,
-            function (RouteCollectorProxy $group) use ($callable) {
-                # code..
-                self::setup($group);
-                $callable();
-            }
-        );
+
+
+
+        $group  =  self::$app->group($path, function (RouteCollectorProxyInterface $group) use ($callable) {
+
+            self::setup($group);
+
+            self::$super_group->setInnerGroup($group);
+
+
+            $callable?->call(self::$super_group);
+        });
+
+
+
+        return self::$super_group->setOuterGroup($group);
     }
 
 
@@ -134,10 +154,9 @@ final class RouteRegistry
      * If you want to register new methods use the RouteMethod Attribute on the method you want to register 
      */
 
-    static function resource(string $path, string $class): void
+    static function resource(string $path, string $class)
     {
         # code...
-
 
         $constructor_attribute_instances = collect([]);
 
@@ -260,7 +279,7 @@ final class RouteRegistry
 
                         self::alterRouteMapIfRouteMethodAttributeExists(
                             $method_attribute_instances,
-                            self::$route_group_map,
+                            $class_name,
                             $methodName
                         );
                     }
@@ -273,6 +292,8 @@ final class RouteRegistry
                     $constructor_attribute_instances,
                     $group
                 );
+
+                self::$super_group->setInnerGroup($group);
             }
 
 
@@ -289,6 +310,9 @@ final class RouteRegistry
             );
             # code...
         }
+
+
+        return self::$super_group->setOuterGroup($group);
     }
 
 

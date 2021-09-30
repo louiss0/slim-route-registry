@@ -1,11 +1,12 @@
 <?php
 
-namespace Louiss0\SlimRouteRegistry\Traits;
+namespace Louiss0\SlimRouteRegistry\Utils\Traits;
 
 use Illuminate\Support\Collection;
+use Psr\Http\Server\MiddlewareInterface;
 use Slim\Routing\RouteCollectorProxy;
 
-trait ResourceRegistration
+trait RouteRegistration
 
 {
 
@@ -133,20 +134,20 @@ trait ResourceRegistration
                     "method_name" => $method_name,
                     "path" => $path,
                     "name" => $name,
-                    "callback" => $callback,
+                    "callback_name" => $callback_name,
                     "middleware" => $middleware,
                 ] = $value;
 
 
 
                 $current_route = $group
-                    ->$method_name($path, [$class_name, $callback])
+                    ->$method_name($path, [$class_name, $callback_name])
                     ->setName($name);
 
 
                 $middleware
                     ->each(
-                        fn ($middleware) =>
+                        fn (MiddlewareInterface $middleware) =>
                         $current_route->addMiddleware($middleware)
                     );
 
@@ -154,13 +155,13 @@ trait ResourceRegistration
                 self::registerMiddlewareIfUseMiddlewareOn(
                     $attribute_instances,
                     $current_route,
-                    $callback,
+                    $callback_name,
                 );
 
                 self::registerMiddlewareIfUseMiddleWareExceptFor(
                     $attribute_instances,
                     $current_route,
-                    $callback,
+                    $callback_name,
                 );
             }
         );
