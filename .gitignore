@@ -2,5 +2,5 @@ vendor
 
 src/controllers
 src/middleware
-# tests
+tests
 .phpunit.result.cache
