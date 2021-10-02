@@ -20,7 +20,6 @@ use Louiss0\SlimRouteRegistry\Utils\Traits\{
     MiddlewareRegistration,
     RouteRegistration,
 };
-use phpDocumentor\Reflection\Types\Null_;
 
 final class RouteRegistry
 {
