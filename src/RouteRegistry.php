@@ -6,9 +6,13 @@ namespace  Louiss0\SlimRouteRegistry;
 
 use Closure;
 use Exception;
-use Illuminate\Support\Collection;
-use Louiss0\SlimRouteRegistry\Enums\BasicRouteMethodNames;
-use Louiss0\SlimRouteRegistry\Utils\Classes\SuperGroup;
+use Louiss0\SlimRouteRegistry\Attributes\{
+    RouteMethod,
+    UseMiddleWareExceptFor,
+    UseMiddleWareOn
+};
+use Louiss0\SlimRouteRegistry\Utils\Classes\MapCreator;
+use Louiss0\SlimRouteRegistry\Utils\Classes\MiddlewareOrganizer;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
@@ -16,25 +20,20 @@ use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Routing\RouteCollectorProxy;
 use Louiss0\SlimRouteRegistry\Utils\Traits\{
-    AlterRouteGroupMapTrait,
-    MiddlewareRegistration,
     RouteRegistration,
 };
-use phpDocumentor\Reflection\Types\Null_;
+use Psr\Http\Server\MiddlewareInterface;
 
 final class RouteRegistry
 {
 
     public static App | RouteCollectorProxyInterface $app;
 
-    protected static Collection $route_group_map;
-
-    protected static SuperGroup $super_group;
+    protected static MapCreator $map_creator;
 
 
-    use RouteRegistration,
-        MiddlewareRegistration,
-        AlterRouteGroupMapTrait;
+
+    use RouteRegistration;
 
     public final static function setup(
         App | RouteCollectorProxyInterface $app
@@ -44,11 +43,7 @@ final class RouteRegistry
 
         self::$app = $app;
 
-
-        self::$super_group = new SuperGroup();
-
-
-        self::$route_group_map = collect([]);
+        self::$map_creator = new MapCreator(new MiddlewareOrganizer());
     }
 
 
@@ -122,26 +117,19 @@ final class RouteRegistry
      *  This function registers a route Group 
      * 
      */
-    public static function group(string $path, Closure | null $callable = null)
+    public static function group(string $path, Closure $callable)
     {
         # code...
 
-
-
-
-        $group  =  self::$app->group($path, function (RouteCollectorProxyInterface $group) use ($callable) {
+        $group =  self::$app->group($path, function (RouteCollectorProxyInterface $group) use ($callable) {
 
             self::setup($group);
-
-            self::$super_group->setInnerGroup($group);
-
-
-            $callable?->call(self::$super_group);
+            $callable();
         });
 
 
 
-        return self::$super_group->setOuterGroup($group);
+        return $group;
     }
 
 
@@ -154,29 +142,27 @@ final class RouteRegistry
      * If you want to register new methods use the RouteMethod Attribute on the method you want to register 
      */
 
-    static function resource(string $path, string $class)
+    static function resource(string $path, string $class_name): void
     {
         # code...
-
         $constructor_attribute_instances = collect([]);
+
 
         $group = self::$app->group(
             $path,
             function (RouteCollectorProxy $group) use (
-                $class,
+                $class_name,
                 $path,
                 $constructor_attribute_instances
             ) {
 
 
-                $path = str_replace("/", "", $path);
-
-                $reflection = new ReflectionClass($class);
+                $reflection = new ReflectionClass($class_name);
 
                 $methods =
                     collect($reflection->getMethods());
 
-                $class_name =
+                $reflection_class_name =
                     $reflection->getName();
 
                 $constructor_attribute_instances =
@@ -185,134 +171,92 @@ final class RouteRegistry
                     ->map(fn (ReflectionAttribute $attribute) =>
                     $attribute->newInstance());
 
+                $use_except_for_middleware_instances =
+
+                    $constructor_attribute_instances->filter(
+                        fn (object $class) =>  is_a($class, UseMiddleWareExceptFor::class)
+                    );
+
+                $use_on_middleware_instances =
+
+                    $constructor_attribute_instances->filter(
+                        fn (object $class) => is_a($class, UseMiddleWareOn::class)
+                    );
 
                 $methods->each(
-                    function (ReflectionMethod $method)
-                    use (
-                        $class_name,
-                        $group,
+                    function (ReflectionMethod $method) use (
+                        $reflection_class_name,
                         $path,
-                        $constructor_attribute_instances
                     ) {
                         # code...
 
                         $method_attribute_instances = collect($method->getAttributes())
-                            ->map(
-                                fn (ReflectionAttribute $attribute) =>
-                                $attribute->newInstance()
-                            );
-                        $methodName = $method->getName();
+                            ->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
 
 
-                        $current_route = match ($methodName) {
+                        $route_method_attribute = $method_attribute_instances
+                            ->first(fn (object $object) => is_a($object, RouteMethod::class));
 
-                            BasicRouteMethodNames::GET_ANY =>
-                            self::registerGetAllRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            BasicRouteMethodNames::GET_ONE =>
-                            self::registerGetOneRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            BasicRouteMethodNames::CREATE_ONE =>
-                            self::registerPostRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            BasicRouteMethodNames::UPDATE_ONE =>
-                            self::registerPatchRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            BasicRouteMethodNames::UPDATE_OR_CREATE_ONE =>
-                            self::registerPutRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            BasicRouteMethodNames::DELETE_ONE =>
-                            self::registerDeleteRoutes(
-                                $path,
-                                $methodName,
-                                $class_name,
-                                $group
-                            ),
-                            default => null
-                        };
+                        $middleware_collection = $method_attribute_instances
+                            ->filter(fn (object $object) => is_a($object, MiddlewareInterface::class));
+
+                        $method_name = $method->getName();
 
 
 
-                        if ($current_route) {
 
-                            self::registerMiddlewareThatUsesTheMiddlwareInterface(
-                                $method_attribute_instances,
-                                $current_route
-                            );
-                            # code...
+                        if (!$route_method_attribute) {
 
-                            self::registerMiddlewareIfUseMiddlewareOn(
-                                $constructor_attribute_instances,
-                                $current_route,
-                                $methodName
-                            );
-
-
-
-                            return self::registerMiddlewareIfUseMiddleWareExceptFor(
-                                $constructor_attribute_instances,
-                                $current_route,
-                                $methodName
-                            );
+                            return self::$map_creator
+                                ->addRouteRouteGroupObjectBasedOnMethodName(
+                                    path: $path,
+                                    class_name: $reflection_class_name,
+                                    callback_name: $method_name,
+                                    middleware: $method_attribute_instances
+                                );
                         }
 
 
-                        self::alterRouteMapIfRouteMethodAttributeExists(
-                            $method_attribute_instances,
-                            $class_name,
-                            $methodName
+                        self::$map_creator->addRouteNecessitiesToRouteObject(
+                            $reflection_class_name,
+                            $route_method_attribute->getMethod(),
+                            $route_method_attribute->getName(),
+                            $method_name,
+                            $middleware_collection,
+                            $route_method_attribute->getPath()
                         );
                     }
                 );
 
 
 
+                self::$map_creator
+                    ->generateKeysAndValuesForMiddlewareOnCollection(...$use_on_middleware_instances);
+
+                self::$map_creator
+                    ->generateKeysAndValuesForMiddlewareExceptCollection(...$use_except_for_middleware_instances);
+
+                self::$map_creator
+                    ->addMiddlewareToRouteMapBasedOnUseMiddlewareOnCollection();
+
+                self::$map_creator
+                    ->addMiddlewareToRouteObjectBasedOnUseMiddlewareExceptForCollection();
+
+
+
                 self::registerRouteMethods(
-                    $class_name,
-                    $constructor_attribute_instances,
-                    $group
+                    route_group_objects: self::$map_creator->getRoute_group_objects(),
+                    group: $group
                 );
-
-                self::$super_group->setInnerGroup($group);
             }
-
-
-
-
         );
 
 
-        if ($constructor_attribute_instances->isNotEmpty()) {
 
-            self::registerMiddlewareThatUsesTheMiddlwareInterface(
-                $constructor_attribute_instances,
-                $group
-            );
-            # code...
-        }
-
-
-        return self::$super_group->setOuterGroup($group);
+        $constructor_attribute_instances
+            ->filter(fn (object $class) => is_a($class, MiddlewareInterface::class))
+            ->each(fn (MiddlewareInterface $middleware) =>
+            $group->addMiddleware($middleware));
     }
 
 

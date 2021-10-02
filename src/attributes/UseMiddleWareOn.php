@@ -5,9 +5,10 @@
 namespace Louiss0\SlimRouteRegistry\Attributes;
 
 use Attribute;
+use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class UseMiddleWareOn
+final class UseMiddleWareOn implements UseMiddlewareContract
 {
 
 
@@ -24,7 +25,7 @@ final class UseMiddleWareOn
     /**
      * Get the value of middleware
      */
-    public function getMiddleware()
+    public function getMiddleware(): array
     {
         return $this->middleware;
     }
@@ -32,7 +33,7 @@ final class UseMiddleWareOn
     /**
      * Get the value of method_names
      */
-    public function getMethodNames()
+    public function getMethodNames(): array
     {
         return $this->method_names;
     }
