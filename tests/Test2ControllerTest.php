@@ -1,13 +1,11 @@
-
 <?php
 
 
 
 use PHPUnit\Framework\TestCase;
 
-class TestControllerTest extends TestCase
+class Test2ControllerTest extends TestCase
 {
-
 
     public function testAutomaticRouteMethodsAreRegisteredProperly()
     {

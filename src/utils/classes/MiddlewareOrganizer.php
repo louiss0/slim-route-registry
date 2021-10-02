@@ -89,13 +89,13 @@ class MiddlewareOrganizer implements UseMiddlewareObjectCreatorContract
         UseMiddleWareOn ...$use_middleware_instances
     ): void {
 
-        $this->generateKeysAndValuesForAMiddlewarecollection(
+        $this->generateKeysAndValuesForAMiddlewareCollection(
             use_middleware_instances: $use_middleware_instances,
             middleware_map: $this->middleware_on_collection
         );
     }
 
-    public function generateKeysAndValuesForMiddlewareExceptcollection(
+    public function generateKeysAndValuesForMiddlewareExceptCollection(
         UseMiddleWareExceptFor ...$use_except_for_middleware_instances
     ): void {
         # code...
