@@ -11,7 +11,7 @@ TODO In php 8.1 change this thing into an enum
 namespace Louiss0\SlimRouteRegistry\Enums;
 
 
-class BasicRouteMethodNames
+class AutomaticRegistrationMethodNames
 {
 
 
