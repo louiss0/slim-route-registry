@@ -17,7 +17,6 @@ trait AlterRouteGroupMap
 
     public function getRoute_group_objects()
     {
-         "architecture"
         return $this->route_group_objects;
     }
 
