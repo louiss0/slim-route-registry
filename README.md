@@ -92,14 +92,14 @@ a route or add middleware to each group.
     - It takes in a path string and a class to use as a string
     - You must use the class name as the second parameter
     - Creates a route group by using the path and extracts every attribute that was added to a class and its methods. 
-      Then creates an instance of each attribute and then uses them to either add a method to.
+      Then creates an instance of each attribute and then uses them to either add a method to a route or add middleware to each group.
+
      
     ```php                         
         RouteRegistry::resource("/posts", PostController::class);
     ```
      
      
-a route or add middleware to each group.
  
 <br>  
 
@@ -108,11 +108,11 @@ a route or add middleware to each group.
     - It takes in any number of paths and resources
     - The resource method will be called on all of the paths and resources passed through
    
-   ```php                         
-        RouteRegistry::resources(
-        ["path"=> /posts", "resource"=> PostController::class
-        );
-    ```
+```php                         
+    RouteRegistry::resources(
+    ["path"=> "/posts", "resource"=> PostController::class]
+    );
+```
 
 #### [Group](#sections)
 
@@ -121,6 +121,7 @@ a route or add middleware to each group.
 - If you used slim without this library you should expect to get a group as the parameter that is passed in to the function. But that is not the case, because the setup function will be called and it will be passed the route collector proxy 
 
 - That means that when you call any methods from within the callback function of the route group they will be scoped to that route.
+
 
    ```php
    
@@ -139,17 +140,13 @@ a route or add middleware to each group.
 
     - There are two types of Attributes that are provided to you RouteMethod and UseMiddleware attributes
 
-    - You can use middleware as attributes 
-        
-        - If you do they get registered as middleware
-        - Each middleware must use the Psr\Http\Server\MiddlewareInterface or else it won't work   
-
+    
 
 ### [Route Method Attributes](#sections)
 
 - RouteMethodAttributes can only be used on methods
 
--  When one is applied to a method it will register it to a group using the path as the relative path to the resource's path the name as the route name and the method as the http method for the method to connect to.
+-  When one is applied to a method. RouteRegistry will use it as a handler. The path is the path that method will be concatenated  to the resource methods path. The name is the of the newly created route. The method is the Http request you want method to handle. 
 
 - They take a path name and method
     
@@ -182,7 +179,7 @@ a route or add middleware to each group.
         function example(){}
     
     ```
-    - This attribute registers a get http method using the path and name   
+    - This attribute will tell `RouteRegistry` to register the method as a get request handler using the path and name   
 
 <br>  
 
@@ -194,7 +191,7 @@ a route or add middleware to each group.
         function example(){}
     
     ```
-    - This attribute registers a post http method using the path and name   
+    - This attribute will tell `RouteRegistry` to register the method as a post request handler using the path and name   
 
 <br>  
 
@@ -206,7 +203,7 @@ a route or add middleware to each group.
         function example(){}
 
     ```
-    - This attribute registers a patch http method using the path and name   
+    - This attribute will tell `RouteRegistry` to register the method as a patch request handler using the path and name   
 
 <br>  
 
@@ -217,7 +214,7 @@ a route or add middleware to each group.
         #[Put(path:string, name:string,)]
         function example(){}
     ```
-    - This attribute registers a put http method using the path and name   
+    - This attribute will tell `RouteRegistry` to register the method as a put request handler using the path and name   
 
 <br>  
 
@@ -229,7 +226,7 @@ a route or add middleware to each group.
         function example(){}
 
     ```
-    - This attribute registers a delete http method using the path and name   
+    - This attribute will tell `RouteRegistry` to register the method as a delete request handler using the path and name   
 
 <br>  
 
@@ -296,7 +293,7 @@ a route or add middleware to each group.
 
 - When you use a controller you can create six methods that automatically get registered to a http method When registered as a resource Controller
 
-- These methods cannot be altered by the RouteGroupMethodAttribute at all
+- These methods cannot be altered by the `RouteMethod` Attribute at all
 
 - You can use dependency injection to get what you want or use contracts 
 
