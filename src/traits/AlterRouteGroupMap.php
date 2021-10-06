@@ -54,7 +54,7 @@ trait AlterRouteGroupMap
     }
 
 
-    public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(UseMiddlewareContract ...$use_middleware_instances): void
+    public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(UseMiddlewareContract ...$use_middleware_instances): self
     {
         # code...
 
@@ -80,12 +80,14 @@ trait AlterRouteGroupMap
             },
             $use_middleware_instances
         );
+
+        return $this;
     }
 
 
     public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(
         UseMiddlewareContract ...$use_middleware_instances
-    ): void {
+    ): self {
 
         # code...
 
@@ -111,5 +113,6 @@ trait AlterRouteGroupMap
                 },
                 use_middleware_instances: $use_middleware_instances
             );
+        return $this;
     }
 }

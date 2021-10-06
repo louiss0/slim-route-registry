@@ -193,7 +193,7 @@ final class RouteRegistry
                         array: $constructor_attribute_instances
                     );
 
-                $add_route_objects_to_based_on_data_given =
+                $add_route_objects_to_route_group_objects_based_on_data_given =
                     function (ReflectionMethod $method) use (
                         $reflection_class_name,
                         $path,
@@ -214,7 +214,8 @@ final class RouteRegistry
                         $method_name = $method->getName();
 
                         $check_if_name_exists_in_automatic_registration_method_names =
-                            AutomaticRegistrationMethodNames::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
+                            AutomaticRegistrationMethodNames
+                            ::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
 
                         if ($check_if_name_exists_in_automatic_registration_method_names) {
 
@@ -252,20 +253,19 @@ final class RouteRegistry
                     };
 
 
+                array_walk(
+                    callback: $add_route_objects_to_route_group_objects_based_on_data_given,
+                    array: $methods
+                );
+
                 self::$route_object_collector
                     ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(
                         ...$use_on_middleware_instances
-                    );
-
-                self::$route_object_collector
+                    )
                     ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(
                         ...$use_except_for_middleware_instances
                     );
 
-                array_walk(
-                    callback: $add_route_objects_to_based_on_data_given,
-                    array: $methods
-                );
 
 
 
