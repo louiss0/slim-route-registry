@@ -223,7 +223,7 @@ final class RouteRegistry
                                     path: $path,
                                     class_name: $reflection_class_name,
                                     callback_name: $method_name,
-                                    middleware: $method_attribute_instances
+                                    middleware: $middleware_collection
                                 );
                             # code...
                         }
