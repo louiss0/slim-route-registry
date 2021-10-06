@@ -1,6 +1,6 @@
 <?php
 
-namespace Louiss0\SlimRouteRegistry\Utils\Traits;
+namespace Louiss0\SlimRouteRegistry\Traits;
 
 use Psr\Http\Server\MiddlewareInterface;
 use Slim\Routing\RouteCollectorProxy;
@@ -27,9 +27,14 @@ trait RouteRegistration
 
             ] = $route_group_object;
 
-            $current_route = $group->$method_name($path, [$class_name, $callback_name])->setName($route_name);
+            $current_route = $group
+                ->$method_name($path, [$class_name, $callback_name])
+                ->setName($route_name);
 
-            $middleware->each(fn (MiddlewareInterface $middleware) => $current_route->addMiddleware($middleware));
+            array_walk(
+                callback: fn (MiddlewareInterface $middleware) => $current_route->addMiddleware($middleware),
+                array: $middleware
+            );
         });
     }
 }

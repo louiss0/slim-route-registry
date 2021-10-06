@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace  Louiss0\SlimRouteRegistry;
 
+require_once __DIR__ . "/utils/helpers.php";
+
+use function Louiss0\SlimRouteRegistry\Utils\Helpers\{array_every, array_first};
+
 use Closure;
 use Exception;
 use Louiss0\SlimRouteRegistry\Attributes\{
@@ -11,15 +15,17 @@ use Louiss0\SlimRouteRegistry\Attributes\{
     UseMiddleWareExceptFor,
     UseMiddleWareOn
 };
-use Louiss0\SlimRouteRegistry\Utils\Classes\MapCreator;
-use Louiss0\SlimRouteRegistry\Utils\Classes\MiddlewareOrganizer;
+use Louiss0\SlimRouteRegistry\Enums\AutomaticRegistrationMethodNames;
+use Louiss0\SlimRouteRegistry\Classes\{
+    RouteObjectCollector
+};
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Routing\RouteCollectorProxy;
-use Louiss0\SlimRouteRegistry\Utils\Traits\{
+use Louiss0\SlimRouteRegistry\Traits\{
     RouteRegistration,
 };
 use Psr\Http\Server\MiddlewareInterface;
@@ -29,7 +35,7 @@ final class RouteRegistry
 
     public static App | RouteCollectorProxyInterface $app;
 
-    protected static MapCreator $map_creator;
+    protected static RouteObjectCollector $route_object_collector;
 
 
 
@@ -43,7 +49,7 @@ final class RouteRegistry
 
         self::$app = $app;
 
-        self::$map_creator = new MapCreator(new MiddlewareOrganizer());
+        self::$route_object_collector = new RouteObjectCollector();
     }
 
 
@@ -145,7 +151,7 @@ final class RouteRegistry
     static function resource(string $path, string $class_name): void
     {
         # code...
-        $constructor_attribute_instances = collect([]);
+        $constructor_attribute_instances = [];
 
 
         $group = self::$app->group(
@@ -159,104 +165,133 @@ final class RouteRegistry
 
                 $reflection = new ReflectionClass($class_name);
 
-                $methods =
-                    collect($reflection->getMethods());
+                $methods = $reflection->getMethods();
 
                 $reflection_class_name =
                     $reflection->getName();
 
-                $constructor_attribute_instances =
-                    $constructor_attribute_instances
-                    ->merge($reflection->getAttributes())
-                    ->map(fn (ReflectionAttribute $attribute) =>
-                    $attribute->newInstance());
+                $constructor_attribute_instances = array_map(
+                    callback: fn (ReflectionAttribute $attribute) =>
+                    $attribute->newInstance(),
+                    array: array_merge($reflection->getAttributes())
+                );
+
 
                 $use_except_for_middleware_instances =
-
-                    $constructor_attribute_instances->filter(
-                        fn (object $class) =>  is_a($class, UseMiddleWareExceptFor::class)
+                    array_filter(
+                        callback: fn (object $class) =>  is_a($class, UseMiddleWareExceptFor::class),
+                        array: $constructor_attribute_instances
                     );
 
                 $use_on_middleware_instances =
-
-                    $constructor_attribute_instances->filter(
-                        fn (object $class) => is_a($class, UseMiddleWareOn::class)
+                    array_filter(
+                        callback: fn (object $class) =>
+                        is_a($class, UseMiddleWareOn::class),
+                        array: $constructor_attribute_instances
                     );
 
-                $methods->each(
+                $add_route_objects_to_based_on_data_given =
                     function (ReflectionMethod $method) use (
                         $reflection_class_name,
                         $path,
                     ) {
                         # code...
 
-                        $method_attribute_instances = collect($method->getAttributes())
-                            ->map(fn (ReflectionAttribute $attribute) => $attribute->newInstance());
+                        $method_attribute_instances = array_map(
+                            callback: fn (ReflectionAttribute $attribute) => $attribute->newInstance(),
+                            array: $method->getAttributes()
+                        );
 
 
-                        $route_method_attribute = $method_attribute_instances
-                            ->first(fn (object $object) => is_a($object, RouteMethod::class));
-
-                        $middleware_collection = $method_attribute_instances
-                            ->filter(fn (object $object) => is_a($object, MiddlewareInterface::class));
+                        $middleware_collection =  array_filter(
+                            callback: fn (object $object) => is_a($object, MiddlewareInterface::class),
+                            array: $method_attribute_instances
+                        );
 
                         $method_name = $method->getName();
 
+                        $check_if_name_exists_in_automatic_registration_method_names =
+                            AutomaticRegistrationMethodNames::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
 
+                        if ($check_if_name_exists_in_automatic_registration_method_names) {
 
-
-                        if (!$route_method_attribute) {
-
-                            return self::$map_creator
+                            return self::$route_object_collector
                                 ->addRouteRouteGroupObjectBasedOnMethodName(
                                     path: $path,
                                     class_name: $reflection_class_name,
                                     callback_name: $method_name,
                                     middleware: $method_attribute_instances
                                 );
+                            # code...
                         }
 
 
-                        self::$map_creator->addRouteNecessitiesToRouteObject(
-                            $reflection_class_name,
-                            $route_method_attribute->getMethod(),
-                            $route_method_attribute->getName(),
-                            $method_name,
-                            $middleware_collection,
-                            $route_method_attribute->getPath()
-                        );
-                    }
+                        $route_method_attribute =
+                            array_first(
+                                callback: fn (object $object) => is_a($object, RouteMethod::class),
+                                array: $method_attribute_instances
+                            );
+
+                        // array_reduce(
+                        //     callback: fn (?RouteMethod $acc, object $object) =>
+                        //     $acc ? $acc : (is_a($object, RouteMethod::class) ? $object : null),
+                        //     array: $method_attribute_instances
+                        // );
+
+
+                        if ($route_method_attribute) {
+
+                            return self::$route_object_collector
+                                ->addRouteNecessitiesToRouteObject(
+                                    $reflection_class_name,
+                                    $route_method_attribute->getMethod(),
+                                    $route_method_attribute->getName(),
+                                    $method_name,
+                                    $middleware_collection,
+                                    $route_method_attribute->getPath()
+                                );
+                        }
+                    };
+
+
+                self::$route_object_collector
+                    ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(
+                        ...$use_on_middleware_instances
+                    );
+
+                self::$route_object_collector
+                    ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(
+                        ...$use_except_for_middleware_instances
+                    );
+
+                array_walk(
+                    callback: $add_route_objects_to_based_on_data_given,
+                    array: $methods
                 );
 
 
 
-                self::$map_creator
-                    ->generateKeysAndValuesForMiddlewareOnCollection(...$use_on_middleware_instances);
-
-                self::$map_creator
-                    ->generateKeysAndValuesForMiddlewareExceptCollection(...$use_except_for_middleware_instances);
-
-                self::$map_creator
-                    ->addMiddlewareToRouteMapBasedOnUseMiddlewareOnCollection();
-
-                self::$map_creator
-                    ->addMiddlewareToRouteObjectBasedOnUseMiddlewareExceptForCollection();
-
-
 
                 self::registerRouteMethods(
-                    route_group_objects: self::$map_creator->getRoute_group_objects(),
+                    route_group_objects: self::$route_object_collector
+                        ->getRoute_group_objects(),
                     group: $group
                 );
             }
         );
 
 
+        $middleware_group = array_filter(
+            callback: fn (object $class) => is_a($class, MiddlewareInterface::class),
+            array: $constructor_attribute_instances
+        );
 
-        $constructor_attribute_instances
-            ->filter(fn (object $class) => is_a($class, MiddlewareInterface::class))
-            ->each(fn (MiddlewareInterface $middleware) =>
-            $group->addMiddleware($middleware));
+
+        array_walk(
+            callback: fn (MiddlewareInterface $middleware) =>
+            $group->addMiddleware($middleware),
+            array: $middleware_group
+        );
     }
 
 
@@ -267,31 +302,38 @@ final class RouteRegistry
      *  If you want to use any middleware on the resources Decorate the methods you want to use them on, Or! 
      * Use the UseMiddlewareExceptFor or UseMiddlewareOn attributes on the resource you want to use it on.  
      */
-    public static function resources(...$array_of_resource_options): void
+    public static function resources(...$resource_options): void
     {
         # code...
 
 
-        $resource_options_collection = collect($array_of_resource_options);
-
         $path_and_class_exist_in_resource_options_collection =
-            $resource_options_collection->every(function ($value) {
-
-                return array_key_exists("path", $value)
-                    && array_key_exists("resource", $value);
-            });
-
-
-        throw_unless(
-            $path_and_class_exist_in_resource_options_collection,
-            Exception::class,
-            "No path or resource in resources"
-        );
+            array_every(
+                callback: function (array $value) {
+                    return array_key_exists("path", $value)
+                        && array_key_exists("resource", $value);
+                },
+                array: $resource_options,
+            );
 
 
-        $resource_options_collection->each(
-            fn ($value) =>
-            self::resource($value["path"], $value["resource"])
+        if (!$path_and_class_exist_in_resource_options_collection) {
+            # code...
+
+            throw new Exception(
+                "You must pass in a path and a resource as resource options the the resource is a class name ",
+                500
+            );
+        }
+
+
+        array_walk(
+            callback: fn ($resource_option) =>
+            self::resource(
+                path: $resource_option["path"],
+                class_name: $resource_option["resource"]
+            ),
+            array: $resource_options
         );
     }
 }
