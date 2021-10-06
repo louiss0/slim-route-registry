@@ -6,7 +6,10 @@ namespace  Louiss0\SlimRouteRegistry;
 
 require_once __DIR__ . "/utils/helpers.php";
 
-use function Louiss0\SlimRouteRegistry\Utils\Helpers\{array_every, array_first};
+use function Louiss0\SlimRouteRegistry\Utils\Helpers\{
+    array_every,
+    array_first
+};
 
 use Closure;
 use Exception;
@@ -232,11 +235,6 @@ final class RouteRegistry
                                 array: $method_attribute_instances
                             );
 
-                        // array_reduce(
-                        //     callback: fn (?RouteMethod $acc, object $object) =>
-                        //     $acc ? $acc : (is_a($object, RouteMethod::class) ? $object : null),
-                        //     array: $method_attribute_instances
-                        // );
 
 
                         if ($route_method_attribute) {
