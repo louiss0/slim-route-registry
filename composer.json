@@ -5,16 +5,15 @@
     "require": {
         "php": "^8.0",
         "slim/psr7": "^1.4",
-        "slim/slim": "^4.7.0",
-        "slim/http": "^1.2",
-        "illuminate/support": "^8.50.0"
+        "slim/slim": "^4.7.0"
     },
-    "suggest": {
+     "suggest": {
         "php-di/slim-bridge": "Allows you to use Request or response injection, Request or response injection and controllers as services"
     },
     "require-dev": {
         "php-di/slim-bridge": "^3.0.0",
-        "phpunit/phpunit": "^9"
+        "phpunit/phpunit": "^9",
+        "slim/http": "dev-master"
     },
     "license": "MIT",
     "autoload": {
