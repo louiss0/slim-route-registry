@@ -30,6 +30,9 @@ final class UseMiddleWareExceptFor implements UseMiddlewareContract
      */
     public function getMiddleware(): array
     {
-        return $this->middleware;
+        return array_map(
+            callback: fn (string $middleware) => new $middleware,
+            array: $this->middleware
+        );
     }
 }
