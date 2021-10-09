@@ -2,12 +2,14 @@
 
 namespace Louiss0\SlimRouteRegistry\Traits;
 
-use Psr\Http\Server\MiddlewareInterface;
+use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
 trait RouteRegistration
 
 {
+
+    private static App $app;
 
     private static  function registerRouteMethods(
         array $route_group_objects,
@@ -32,7 +34,20 @@ trait RouteRegistration
                 ->setName($route_name);
 
             array_walk(
-                callback: fn (MiddlewareInterface $middleware) => $current_route->addMiddleware($middleware),
+                callback: function (string $middleware) use ($current_route) {
+
+                    $container = self::$app->getContainer();
+
+
+
+                    if ($container->has($middleware)) {
+                        # code...
+                        return $current_route
+                            ->addMiddleware($container->get($middleware));
+                    }
+
+                    $current_route->addMiddleware(new $middleware);
+                },
                 array: $middleware
             );
         });
