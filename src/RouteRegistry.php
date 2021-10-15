@@ -77,21 +77,6 @@ x<?php
 
 
 
-        public function middleware(MiddlewareInterface ...$middleware)
-        {
-            # code...
-
-
-            array_walk(
-                callback: function (MiddlewareInterface $middleware) {
-                    # code...
-                    self::getOuter_group()
-                        ->addMiddleware($middleware);
-                },
-                array: $middleware
-            );
-        }
-
         public static function getRoutes()
         {
 
@@ -235,7 +220,7 @@ x<?php
                 function (RouteCollectorProxy $group) use (
                     $class_name,
                     $path,
-                    $constructor_attribute_instances
+                    &$constructor_attribute_instances
                 ) {
 
 
