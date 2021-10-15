@@ -193,26 +193,10 @@ final class RouteRegistry
 
                 $reflection_attributes = $reflection->getAttributes();
 
-                $container = self::$app->getContainer();
 
-                $gather_instances_based_on_whether_or_not_its_in_the_container =
-                    function (ReflectionAttribute $attribute) use ($container) {
-
-                        $attribute_name = $attribute->getName();
-                        $attribute_is_in_container =
-                            $container->has($attribute_name);
-
-                        if ($attribute_is_in_container) {
-                            # code...
-                            return  $container->get($attribute_name);
-                        }
-
-                        return $attribute->newInstance();
-                    };
-
-                $constructor_attribute_instances = array_map(
-                    callback: $gather_instances_based_on_whether_or_not_its_in_the_container,
-                    array: array_merge($reflection_attributes)
+                $constructor_attribute_instances = array_merge(
+                    $constructor_attribute_instances,
+                    $reflection_attributes
                 );
 
 
@@ -307,11 +291,12 @@ final class RouteRegistry
 
 
 
-                self::$group_manipulator->registerRouteMethods(
-                    route_group_objects: self::$route_object_collector
-                        ->getRoute_group_objects(),
-                    container: $container
-                );
+                self::$group_manipulator
+                    ->registerRouteMethods(
+                        route_group_objects: self::$route_object_collector
+                            ->getRoute_group_objects(),
+                        container: self::$app->getContainer()
+                    );
             }
         );
 
@@ -323,7 +308,7 @@ final class RouteRegistry
 
 
         self::$group_manipulator
-            ->setInner_group($group)
+            ->setOuter_group($group)
             ->registerMiddleware(...$middleware_group);
     }
 

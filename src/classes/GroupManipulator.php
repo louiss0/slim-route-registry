@@ -2,11 +2,11 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
-use MiddlewareManipulator;
+use Louiss0\SlimRouteRegistry\Classes\MiddlewareManipulator;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
-
+use Slim\Routing\RouteCollectorProxy;
 
 class GroupManipulator
 {
@@ -28,7 +28,7 @@ class GroupManipulator
     }
 
 
-    public function setInner_group($inner_group): self
+    public function setInner_group(RouteCollectorProxy $inner_group): self
     {
 
 
@@ -45,10 +45,10 @@ class GroupManipulator
 
 
 
-    public function setOuter_group($outer_group): self
+    public function setOuter_group(RouteGroupInterface $outer_group): self
     {
 
-        $this->$outer_group = $outer_group;
+        $this->outer_group = $outer_group;
 
         return $this;
     }
