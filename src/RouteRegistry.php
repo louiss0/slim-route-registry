@@ -233,27 +233,13 @@ x<?php
 
                     $reflection_attributes = $reflection->getAttributes();
 
-                    $container = self::$app->getContainer();
 
-                    $gather_instances_based_on_whether_or_not_its_in_the_container =
-                        function (ReflectionAttribute $attribute) use ($container) {
 
-                            $attribute_name = $attribute->getName();
-                            $attribute_is_in_container =
-                                $container->has($attribute_name);
-
-                            if ($attribute_is_in_container) {
-                                # code...
-                                return  $container->get($attribute_name);
-                            }
-
-                            return $attribute->newInstance();
-                        };
-
-                    $constructor_attribute_instances = array_map(
-                        callback: $gather_instances_based_on_whether_or_not_its_in_the_container,
-                        array: array_merge($reflection_attributes)
-                    );
+                    $constructor_attribute_instances =
+                        array_merge(
+                            $constructor_attribute_instances,
+                            $reflection_attributes
+                        );
 
 
 
