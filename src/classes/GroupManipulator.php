@@ -2,9 +2,10 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
+use MiddlewareManipulator;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
-use Slim\Interfaces\RouteInterface;
+use Slim\Interfaces\RouteGroupInterface;
 
 
 class GroupManipulator
@@ -14,7 +15,7 @@ class GroupManipulator
 
     private RouteCollectorProxyInterface $inner_group;
 
-    private RouteInterface $outer_group;
+    private RouteGroupInterface $outer_group;
 
 
 
@@ -52,19 +53,15 @@ class GroupManipulator
         return $this;
     }
 
-    public function middleware(string | object ...$middleware)
+    public function registerMiddleware(string | object ...$middleware)
     {
         # code...
 
 
-        array_walk(
-            callback: function (string | object $middleware) {
-                # code...
-                $this->getOuter_group()
-                    ->addMiddleware($middleware);
-            },
-            array: $middleware
-        );
+        return (new MiddlewareManipulator(
+            outer_group: $this->getOuter_group()
+
+        ))->registerMiddleware(...$middleware);
     }
 
 

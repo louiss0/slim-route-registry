@@ -21,7 +21,8 @@ use Louiss0\SlimRouteRegistry\Attributes\{
 use Louiss0\SlimRouteRegistry\Enums\AutomaticRegistrationMethodNames;
 use Louiss0\SlimRouteRegistry\Classes\{
     GroupManipulator,
-    RouteObjectCollector
+    RouteObjectCollector,
+    MiddlewareManipulator
 };
 use ReflectionAttribute;
 use ReflectionClass;
@@ -69,13 +70,7 @@ final class RouteRegistry
 
 
 
-    public function middleware(string | object ...$middleware)
-    {
-        # code...
 
-
-        self::$group_manipulator->middleware(...$middleware);
-    }
 
     public static function getRoutes()
     {
@@ -159,6 +154,8 @@ final class RouteRegistry
             );
 
         self::$group_manipulator->setOuter_group($group);
+
+        return new MiddlewareManipulator($group);
     }
 
 
@@ -182,7 +179,7 @@ final class RouteRegistry
             function (RouteCollectorProxy $group) use (
                 $class_name,
                 $path,
-                $constructor_attribute_instances
+                &$constructor_attribute_instances
             ) {
 
                 self::$group_manipulator->setInner_group($group);
@@ -325,10 +322,9 @@ final class RouteRegistry
         );
 
 
-        self::$group_manipulator->getInner_group($group);
-
-
-        self::$group_manipulator->middleware(...$middleware_group);
+        self::$group_manipulator
+            ->setInner_group($group)
+            ->registerMiddleware(...$middleware_group);
     }
 
 
