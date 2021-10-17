@@ -226,13 +226,16 @@ x<?php
 
                     $reflection = new ReflectionClass($class_name);
 
-                    $methods = $reflection->getMethods();
 
-                    $reflection_class_name =
-                        $reflection->getName();
-
-                    $reflection_attributes = $reflection->getAttributes();
-
+                    [
+                        $methods,
+                        $reflection_class_name,
+                        $reflection_attributes,
+                    ] = [
+                        $reflection->getMethods(),
+                        $reflection->getName(),
+                        $reflection->getAttributes(),
+                    ];
 
 
                     $constructor_attribute_instances =
@@ -242,10 +245,10 @@ x<?php
                         );
 
 
-
                     $use_except_for_middleware_instances =
                         array_filter(
-                            callback: fn (object $class) =>  is_a($class, UseMiddleWareExceptFor::class),
+                            callback: fn (object $class) =>
+                            is_a($class, UseMiddleWareExceptFor::class),
                             array: $constructor_attribute_instances
                         );
 
@@ -264,13 +267,15 @@ x<?php
                             # code...
 
                             $method_attribute_instances = array_map(
-                                callback: fn (ReflectionAttribute $attribute) => $attribute->newInstance(),
+                                callback: fn (ReflectionAttribute $attribute) =>
+                                $attribute->newInstance(),
                                 array: $method->getAttributes()
                             );
 
 
                             $middleware_collection =  array_filter(
-                                callback: fn (object $object) => is_a($object, MiddlewareInterface::class),
+                                callback: fn (object $object) =>
+                                is_a($object, MiddlewareInterface::class),
                                 array: $method_attribute_instances
                             );
 
@@ -289,13 +294,13 @@ x<?php
                                         callback_name: $method_name,
                                         middleware: $middleware_collection
                                     );
-                                # code...
                             }
 
 
                             $route_method_attribute =
                                 array_first(
-                                    callback: fn (object $object) => is_a($object, RouteMethod::class),
+                                    callback: fn (object $object) =>
+                                    is_a($object, RouteMethod::class),
                                     array: $method_attribute_instances
                                 );
 
@@ -346,6 +351,9 @@ x<?php
                 callback: fn (object $class) => is_a($class, MiddlewareInterface::class),
                 array: $constructor_attribute_instances
             );
+
+
+
 
 
             array_walk(
