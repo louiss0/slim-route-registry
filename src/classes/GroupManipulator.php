@@ -2,7 +2,7 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
-use Louiss0\SlimRouteRegistry\Classes\MiddlewareManipulator;
+use Louiss0\SlimRouteRegistry\Contracts\MiddlewareRegistrarContract;
 use Psr\Container\ContainerInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
@@ -26,6 +26,22 @@ class GroupManipulator
     {
         return $this->inner_group;
     }
+
+
+    public function __construct(
+        private MiddlewareRegistrarContract $middlewareRegistrar
+
+    ) {
+    }
+
+    /**
+     * Get the value of MiddlewareRegistrar
+     */
+    public function getMiddlewareRegistrar()
+    {
+        return $this->middlewareRegistrar;
+    }
+
 
 
     public function setInner_group(RouteCollectorProxy $inner_group): self
@@ -58,10 +74,8 @@ class GroupManipulator
         # code...
 
 
-        return (new MiddlewareManipulator(
-            outer_group: $this->getOuter_group()
-
-        ))->registerMiddleware(...$middleware);
+        return  $this->middlewareRegistrar
+            ->registerMiddleware(...$middleware);
     }
 
 
@@ -123,12 +137,12 @@ class GroupManipulator
 
 
 
-    function registerRouteMethods(array $route_group_objects, ContainerInterface $container)
+    function registerRouteMethods(array $route_group_objects, RouteCollectorProxy $group)
     {
 
         # code...
         array_walk(
-            callback: function ($route_group_object,) use ($container) {
+            callback: function ($route_group_object,) use ($group) {
 
                 [
                     "class_name" => $class_name,
@@ -141,21 +155,14 @@ class GroupManipulator
                 ] = $route_group_object;
 
 
-                $current_route = $this->getInner_group()
+                $current_route = $group
                     ->$method_name($path, [$class_name, $callback_name])
                     ->setName($route_name);
 
                 array_walk(
-                    callback: function (string $middleware) use ($current_route, $container) {
+                    callback: function (string $middleware) use ($current_route) {
 
-
-                        if ($container->has($middleware)) {
-                            # code...
-                            return $current_route
-                                ->addMiddleware($container->get($middleware));
-                        }
-
-                        $current_route->addMiddleware(new $middleware);
+                        return $current_route->addMiddleware(new $middleware);
                     },
                     array: $middleware
                 );

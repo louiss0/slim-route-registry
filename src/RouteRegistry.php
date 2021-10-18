@@ -22,7 +22,7 @@ use Louiss0\SlimRouteRegistry\Enums\AutomaticRegistrationMethodNames;
 use Louiss0\SlimRouteRegistry\Classes\{
     GroupManipulator,
     RouteObjectCollector,
-    MiddlewareManipulator
+    MiddlewareRegistrar
 };
 use ReflectionAttribute;
 use ReflectionClass;
@@ -53,17 +53,22 @@ final class RouteRegistry
 
         self::$route_object_collector = new RouteObjectCollector();
 
+        $inner_group = $app;
 
-        self::$group_manipulator = new GroupManipulator();
+        $outer_group = self::$app->group("", function (RouteCollectorProxy $group) use (&$inner_group) {
 
-
-
-        $group = self::$app->group("", function (RouteCollectorProxy $group) {
-
-            self::$group_manipulator->setInner_group($group);
+            $inner_group = $group;
         });
 
-        self::$group_manipulator->setOuter_group($group);
+
+        self::$group_manipulator = new GroupManipulator(
+            new MiddlewareRegistrar($outer_group)
+        );
+
+
+        self::$group_manipulator
+            ->setInner_group($inner_group)
+            ->setOuter_group($outer_group);
     }
 
 
@@ -142,20 +147,35 @@ final class RouteRegistry
     {
         # code...
 
-        $group =  self::$group_manipulator->getInner_group()
-            ->group(
-                $path,
-                function (RouteCollectorProxyInterface $group) use ($callable) {
+        $inner_group =
+            self::$group_manipulator
+            ->getInner_group();
 
-                    self::$group_manipulator->setInner_group($group);
+        $outer_group =
+            $inner_group->group(
+                $path,
+                function (RouteCollectorProxyInterface $group) use ($callable, &$inner_group) {
+
+
+                    self::$group_manipulator
+                        ->setInner_group($group);
 
                     $callable();
+
+                    $inner_group = $group;
                 }
             );
 
-        self::$group_manipulator->setOuter_group($group);
 
-        return new MiddlewareManipulator($group);
+        self::$group_manipulator = new GroupManipulator(
+            middlewareRegistrar: new MiddlewareRegistrar($outer_group)
+        );
+
+
+        return self::$group_manipulator
+            ->setInner_group($inner_group)
+            ->setOuter_group($outer_group)
+            ->getMiddlewareRegistrar();
     }
 
 
@@ -173,7 +193,6 @@ final class RouteRegistry
         # code...
         $constructor_attribute_instances = [];
 
-
         $group = self::$group_manipulator->getInner_group()->group(
             $path,
             function (RouteCollectorProxy $group) use (
@@ -182,14 +201,11 @@ final class RouteRegistry
                 &$constructor_attribute_instances
             ) {
 
-                self::$group_manipulator->setInner_group($group);
-
                 $reflection = new ReflectionClass($class_name);
 
                 $methods = $reflection->getMethods();
 
-                $reflection_class_name =
-                    $reflection->getName();
+                $reflection_class_name = $reflection->getName();
 
                 $reflection_attributes = $reflection->getAttributes();
 
@@ -228,7 +244,8 @@ final class RouteRegistry
 
 
                         $middleware_collection =  array_filter(
-                            callback: fn (object $object) => is_a($object, MiddlewareInterface::class),
+                            callback: fn (object $object) =>
+                            is_a($object, MiddlewareInterface::class),
                             array: $method_attribute_instances
                         );
 
@@ -237,6 +254,8 @@ final class RouteRegistry
                         $check_if_name_exists_in_automatic_registration_method_names =
                             AutomaticRegistrationMethodNames
                             ::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
+
+
 
                         if ($check_if_name_exists_in_automatic_registration_method_names) {
 
@@ -247,7 +266,6 @@ final class RouteRegistry
                                     callback_name: $method_name,
                                     middleware: $middleware_collection
                                 );
-                            # code...
                         }
 
 
@@ -295,8 +313,11 @@ final class RouteRegistry
                     ->registerRouteMethods(
                         route_group_objects: self::$route_object_collector
                             ->getRoute_group_objects(),
-                        container: self::$app->getContainer()
+                        group: $group
                     );
+
+
+                self::$route_object_collector->flushRouteObjects();
             }
         );
 
@@ -305,6 +326,7 @@ final class RouteRegistry
             callback: fn (object $class) => is_a($class, MiddlewareInterface::class),
             array: $constructor_attribute_instances
         );
+
 
 
         self::$group_manipulator

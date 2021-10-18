@@ -2,9 +2,10 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
+use Louiss0\SlimRouteRegistry\Contracts\MiddlewareRegistrarContract;
 use Slim\Interfaces\RouteGroupInterface;
 
-class MiddlewareManipulator
+class MiddlewareRegistrar implements MiddlewareRegistrarContract
 {
 
 
@@ -14,7 +15,7 @@ class MiddlewareManipulator
     ) {
     }
 
-    public function registerMiddleware(string| object ...$middleware)
+    public function registerMiddleware(string| object ...$middleware): self
     {
         # code...
 

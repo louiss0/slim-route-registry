@@ -5,15 +5,21 @@ declare(strict_types=1);
 
 namespace Louiss0\SlimRouteRegistry\Controllers;
 
-use Louiss0\SlimRouteRegistry\Attributes\Delete;
-use Louiss0\SlimRouteRegistry\Attributes\Get;
-use Louiss0\SlimRouteRegistry\Attributes\Patch;
-use Louiss0\SlimRouteRegistry\Attributes\Post;
-use Louiss0\SlimRouteRegistry\Attributes\Put;
-use Louiss0\SlimRouteRegistry\Attributes\UseMiddleWareExceptFor;
-use Louiss0\SlimRouteRegistry\Attributes\UseMiddleWareOn;
-use Louiss0\SlimRouteRegistry\Middleware\Test2Middleware;
-use Louiss0\SlimRouteRegistry\Middleware\TestMiddleware;
+use Louiss0\SlimRouteRegistry\Attributes\{
+    Delete,
+    Get,
+    Patch,
+    Post,
+    Put,
+    UseMiddleWareExceptFor,
+    UseMiddleWareOn,
+};
+
+use Louiss0\SlimRouteRegistry\Middleware\{
+    TestMiddleware,
+    Test2Middleware
+};
+
 use Slim\Http\Response;
 use Slim\Http\ServerRequest;
 
