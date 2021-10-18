@@ -9,7 +9,6 @@ trait RouteRegistration
 
 {
 
-    private static App $app;
 
     private static  function registerRouteMethods(
         array $route_group_objects,

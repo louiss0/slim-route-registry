@@ -139,4 +139,10 @@ final class RouteObjectCollector
                 break;
         }
     }
+
+    public function flushRouteObjects()
+    {
+        # code...
+        $this->route_group_objects = [];
+    }
 }

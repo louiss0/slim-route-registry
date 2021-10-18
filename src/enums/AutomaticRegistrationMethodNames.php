@@ -41,6 +41,8 @@ final class AutomaticRegistrationMethodNames
         string $method_name
     ): bool {
 
-        return in_array($method_name, self::getAutomaticRegistrationMethodNames());
+
+
+        return in_array($method_name, self::getAutomaticRegistrationMethodNames(), true);
     }
 }
