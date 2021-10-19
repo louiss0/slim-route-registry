@@ -123,6 +123,7 @@ a route or add middleware to each group.
 - That means that when you call any methods from within the callback function of the route group they will be scoped to that route.
 
 
+
    ```php
    
       RouteRegistry::group("/api", function (){
@@ -133,7 +134,20 @@ a route or add middleware to each group.
    
    ```
 
+- It returns Middleware Manipulator which is a class that allows you to add middleware to the group
+    ```php
+        
+        RouteRegistry::group( 
+            string $path , 
+            Closure $closure ): MiddlewareRegistry
+      
 
+        RouteRegistry::group( 
+            string $path , 
+            Closure $closure )
+        ->registerMiddleware();
+
+    ```
 ## [Attributes](#sections)
 
     - Attributes are the bread and butter of your app
