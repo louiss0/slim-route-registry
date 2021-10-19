@@ -134,12 +134,12 @@ a route or add middleware to each group.
    
    ```
 
-- It returns Middleware Manipulator which is a class that allows you to add middleware to the group
+- It returns MiddlewareRegistrar which is a class that allows you to add middleware to the group
     ```php
         
         RouteRegistry::group( 
             string $path , 
-            Closure $closure ): MiddlewareRegistry
+            Closure $closure ): MiddlewareRegistrar
       
 
         RouteRegistry::group( 
