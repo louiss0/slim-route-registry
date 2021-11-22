@@ -159,9 +159,14 @@ class GroupManipulator
                     ->setName($route_name);
 
                 array_walk(
-                    callback: function (MiddlewareInterface $middleware) use ($current_route) {
+                    callback: function (string| MiddlewareInterface $middleware) use ($current_route) {
+                        if (is_string($middleware)) {
+                            # code...
+                            return
+                                $current_route->addMiddleware(new $middleware);
+                        }
 
-                        return $current_route->addMiddleware($middleware);
+                        $current_route->addMiddleware($middleware);
                     },
                     array: $middleware
                 );
