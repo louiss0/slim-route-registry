@@ -44,7 +44,7 @@ final class RouteRegistry
     private static GroupManipulator $group_manipulator;
 
     public final static function setup(
-        App  $app
+        RouteCollectorProxyInterface  $app
     ) {
         # code...
 
@@ -195,7 +195,7 @@ final class RouteRegistry
 
         $group = self::$group_manipulator->getInner_group()->group(
             $path,
-            function (RouteCollectorProxy $group) use (
+            function (RouteCollectorProxyInterface $group) use (
                 $class_name,
                 $path,
                 &$constructor_attribute_instances
@@ -212,7 +212,11 @@ final class RouteRegistry
 
                 $constructor_attribute_instances = array_merge(
                     $constructor_attribute_instances,
-                    $reflection_attributes
+                    array_map(
+                        callback: fn (ReflectionAttribute $reflection_attribute) =>
+                        $reflection_attribute->newInstance(),
+                        array: $reflection_attributes
+                    )
                 );
 
 

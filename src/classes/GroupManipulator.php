@@ -3,10 +3,9 @@
 namespace Louiss0\SlimRouteRegistry\Classes;
 
 use Louiss0\SlimRouteRegistry\Contracts\MiddlewareRegistrarContract;
-use Psr\Container\ContainerInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
-use Slim\Routing\RouteCollectorProxy;
 
 class GroupManipulator
 {
@@ -44,7 +43,7 @@ class GroupManipulator
 
 
 
-    public function setInner_group(RouteCollectorProxy $inner_group): self
+    public function setInner_group(RouteCollectorProxyInterface $inner_group): self
     {
 
 
@@ -137,7 +136,7 @@ class GroupManipulator
 
 
 
-    function registerRouteMethods(array $route_group_objects, RouteCollectorProxy $group)
+    function registerRouteMethods(array $route_group_objects, RouteCollectorProxyInterface $group)
     {
 
         # code...
@@ -160,9 +159,9 @@ class GroupManipulator
                     ->setName($route_name);
 
                 array_walk(
-                    callback: function (string $middleware) use ($current_route) {
+                    callback: function (MiddlewareInterface $middleware) use ($current_route) {
 
-                        return $current_route->addMiddleware(new $middleware);
+                        return $current_route->addMiddleware($middleware);
                     },
                     array: $middleware
                 );

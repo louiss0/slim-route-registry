@@ -19,6 +19,6 @@ interface CRUDControllerContract
     public function index(ServerRequest $request, Response $response): Response;
     public function show(int $id, Response $response): Response;
     public function store(ServerRequest $request, Response $response): Response;
-    public function update(int $id, Response $response): Response;
+    public function update(ServerRequest $request, Response $response): Response;
     public function destroy(int $id, Response $response): Response;
 }
