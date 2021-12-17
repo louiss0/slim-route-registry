@@ -61,9 +61,7 @@ final class RouteRegistry
         });
 
 
-        self::$group_manipulator = new GroupManipulator(
-            new MiddlewareRegistrar($outer_group)
-        );
+        self::$group_manipulator = new GroupManipulator();
 
 
         self::$group_manipulator
@@ -143,39 +141,30 @@ final class RouteRegistry
      *  This function registers a route Group 
      * 
      */
-    public static function group(string $path, Closure $callable)
+    public static function group(string $path, Closure $callable): void
     {
         # code...
 
-        $inner_group =
-            self::$group_manipulator
+        $group_manipulator =    self::$group_manipulator;
+
+        $inner_group = $group_manipulator
             ->getInner_group();
 
         $outer_group =
             $inner_group->group(
                 $path,
-                function (RouteCollectorProxyInterface $group) use ($callable, &$inner_group) {
+                function (RouteCollectorProxyInterface $group) use ($callable, $group_manipulator) {
 
 
-                    self::$group_manipulator
+                    $group_manipulator
                         ->setInner_group($group);
 
                     $callable();
-
-                    $inner_group = $group;
                 }
             );
 
 
-        self::$group_manipulator = new GroupManipulator(
-            middlewareRegistrar: new MiddlewareRegistrar($outer_group)
-        );
-
-
-        return self::$group_manipulator
-            ->setInner_group($inner_group)
-            ->setOuter_group($outer_group)
-            ->getMiddlewareRegistrar();
+        $group_manipulator->setOuter_group($outer_group);
     }
 
 

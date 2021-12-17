@@ -2,7 +2,6 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
-use Louiss0\SlimRouteRegistry\Contracts\MiddlewareRegistrarContract;
 use Psr\Http\Server\MiddlewareInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
@@ -27,10 +26,8 @@ class GroupManipulator
     }
 
 
-    public function __construct(
-        private MiddlewareRegistrarContract $middlewareRegistrar
-
-    ) {
+    public function __construct()
+    {
     }
 
     /**
