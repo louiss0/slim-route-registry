@@ -2,6 +2,7 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
+use Closure;
 use Psr\Http\Server\MiddlewareInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
@@ -26,25 +27,43 @@ class GroupManipulator
     }
 
 
-    public function __construct()
-    {
+    public function __construct(
+        RouteCollectorProxyInterface $group,
+    ) {
+
+        $outer_group = $group->group("", function (RouteCollectorProxyInterface $group) {
+
+            $this->setInner_group($group);
+        });
+
+        $this->setOuter_group($outer_group);
     }
 
-    /**
-     * Get the value of MiddlewareRegistrar
-     */
-    public function getMiddlewareRegistrar()
+
+    public function resetInnerAndOuterGroupsAndCallClosureFromWithinGroupCreationClosure(string $path = "", ?Closure $closure = null)
     {
-        return $this->middlewareRegistrar;
+
+        $outer_group = $this->getInner_group()
+            ->group($path, function (RouteCollectorProxyInterface $group) use ($closure) {
+
+                $this->setInner_group($group);
+
+                $closure?->call($group);
+            });
+
+        $this->setOuter_group($outer_group);
     }
 
 
 
-    public function setInner_group(RouteCollectorProxyInterface $inner_group): self
+
+
+    private function setInner_group(RouteCollectorProxyInterface $inner_group): self
     {
 
 
         $this->inner_group = $inner_group;
+
 
         return $this;
     }
@@ -57,21 +76,12 @@ class GroupManipulator
 
 
 
-    public function setOuter_group(RouteGroupInterface $outer_group): self
+    private function setOuter_group(RouteGroupInterface $outer_group): self
     {
 
         $this->outer_group = $outer_group;
 
         return $this;
-    }
-
-    public function registerMiddleware(string | object ...$middleware)
-    {
-        # code...
-
-
-        return  $this->middlewareRegistrar
-            ->registerMiddleware(...$middleware);
     }
 
 
@@ -133,12 +143,12 @@ class GroupManipulator
 
 
 
-    function registerRouteMethods(array $route_group_objects, RouteCollectorProxyInterface $group)
+    function registerRouteMethods(array $route_group_objects,)
     {
 
         # code...
         array_walk(
-            callback: function ($route_group_object,) use ($group) {
+            callback: function ($route_group_object,) {
 
                 [
                     "class_name" => $class_name,
@@ -151,7 +161,7 @@ class GroupManipulator
                 ] = $route_group_object;
 
 
-                $current_route = $group
+                $current_route = $this->getInner_group()
                     ->$method_name($path, [$class_name, $callback_name])
                     ->setName($route_name);
 

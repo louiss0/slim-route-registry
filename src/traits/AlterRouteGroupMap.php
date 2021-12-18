@@ -4,8 +4,7 @@
 namespace Louiss0\SlimRouteRegistry\Traits;
 
 use Closure;
-use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
-
+use Louiss0\SlimRouteRegistry\Contracts\{UseMiddlewareContract, UseMiddlewareOnMethodsContract};
 
 trait AlterRouteGroupMap
 {
@@ -21,6 +20,29 @@ trait AlterRouteGroupMap
     }
 
 
+    public function createNewRouteGroupObjectsFromUseMiddlewareInstance(UseMiddlewareContract $use_middleware_instance): self
+    {
+        $middleware = $use_middleware_instance->getMiddleware();
+
+
+
+        $this->route_group_objects = array_map(
+            callback: function (array $route_group_object) use ($middleware) {
+                [
+                    "middleware" => $old_middleware
+                ] = $route_group_object;
+                return array_merge(
+                    $route_group_object,
+                    ["middleware" => [...$old_middleware, $middleware]]
+                );
+            },
+            array: $this->route_group_objects
+        );
+
+
+        return $this;
+    }
+
 
     private function createNewRouteGroupObjectsFromUseMiddlewareMethodsNamesAndMiddleware(
         Closure $closure,
@@ -31,7 +53,7 @@ trait AlterRouteGroupMap
             callback: function (array $route_group_object) use ($closure, $use_middleware_instances) {
                 # code...
                 return array_reduce(
-                    callback: function (array $route_group_object, UseMiddlewareContract $use_middleware_instance) use ($closure) {
+                    callback: function (array $route_group_object, UseMiddlewareOnMethodsContract $use_middleware_instance) use ($closure) {
                         [$method_names, $middleware] = [
                             $use_middleware_instance->getMethodNames(),
                             $use_middleware_instance->getMiddleware()

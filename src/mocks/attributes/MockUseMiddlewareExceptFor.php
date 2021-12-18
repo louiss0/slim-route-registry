@@ -1,16 +1,11 @@
 <?php
 
+namespace Louiss0\SlimRouteRegistry\Mocks\Attributes;
 
-
-namespace Louiss0\SlimRouteRegistry\Attributes;
-
-use Attribute;
 use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class UseMiddleWareOn  implements UseMiddlewareContract
+final class MockUseMiddleWareExceptFor implements UseMiddlewareContract
 {
-
 
 
 
@@ -18,24 +13,21 @@ final class UseMiddleWareOn  implements UseMiddlewareContract
         private array $method_names,
         private array $middleware
     ) {
-
-
     }
 
-
-
-
     /**
-     * Get the value of method_names
+     * Get the value of methods
      */
     public function getMethodNames(): array
     {
         return $this->method_names;
     }
 
-    function getMiddleware(): array
+    /**
+     * Get the value of middleware
+     */
+    public function getMiddleware(): array
     {
-        return $this->middleware
+        return $this->middleware;
     }
-
 }

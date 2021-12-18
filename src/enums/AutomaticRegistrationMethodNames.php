@@ -14,7 +14,7 @@ final class AutomaticRegistrationMethodNames
 {
 
 
-    const GET_ANY = "index";
+    const GET_MULTIPLE = "collect";
     const GET_ONE = "show";
     const CREATE_ONE = "store";
     const UPDATE_ONE = "update";
@@ -28,7 +28,7 @@ final class AutomaticRegistrationMethodNames
         # code...
 
         return [
-            self::GET_ANY,
+            self::GET_MULTIPLE,
             self::GET_ONE,
             self::CREATE_ONE,
             self::UPDATE_ONE,
