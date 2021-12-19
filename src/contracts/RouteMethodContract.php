@@ -1,5 +1,6 @@
 <?php
 
+namespace Louiss0\SlimRouteRegistry\Contracts;
 
 interface RouteMethodContract
 {

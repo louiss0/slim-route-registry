@@ -3,7 +3,7 @@
 namespace Louiss0\SlimRouteRegistry\Attributes;
 
 use Attribute;
-use RouteMethodContract;
+use Louiss0\SlimRouteRegistry\Contracts\RouteMethodContract;
 
 #[Attribute(Attribute::TARGET_METHOD)]
 class RouteMethod implements RouteMethodContract

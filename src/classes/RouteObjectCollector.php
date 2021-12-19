@@ -70,7 +70,7 @@ final class RouteObjectCollector
     }
 
 
-    public function addRouteRouteGroupObjectBasedOnMethodName(
+    public function addRouteRouteGroupObjectBasedOnCallbackName(
         string $path,
         string $class_name,
         string $callback_name,
@@ -83,7 +83,7 @@ final class RouteObjectCollector
         $route_name = "{$path}.{$callback_name}";
 
         switch ($callback_name) {
-            case AutomaticRegistrationMethodNames::GET_ANY:
+            case AutomaticRegistrationMethodNames::GET_MULTIPLE:
                 $this->addRouteNecessitiesToRouteObject(
                     $class_name,
                     RouteMethodNames::GET,

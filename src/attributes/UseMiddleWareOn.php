@@ -18,8 +18,6 @@ final class UseMiddleWareOn  implements UseMiddlewareContract
         private array $method_names,
         private array $middleware
     ) {
-
-
     }
 
 
@@ -35,7 +33,6 @@ final class UseMiddleWareOn  implements UseMiddlewareContract
 
     function getMiddleware(): array
     {
-        return $this->middleware
+        return $this->middleware;
     }
-
 }

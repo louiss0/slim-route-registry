@@ -2,11 +2,11 @@
 
 namespace Louiss0\SlimRouteRegistry\Mocks\Controllers;
 
-use Louiss0\SlimRouteRegistry\Contracts\CRUDControllerContract;
+use Louiss0\SlimRouteRegistry\Contracts\ResourceControllerContract;
 use Slim\Http\ServerRequest;
 use Slim\Http\Response;
 
-class ResourceController implements CRUDControllerContract
+class ResourceController implements ResourceControllerContract
 {
 
 
@@ -26,7 +26,13 @@ class ResourceController implements CRUDControllerContract
     }
 
 
-    function update(ServerRequest $request, Response $response): Response
+    function upsert(ServerRequest $request, Response $response): Response
+    {
+        return $response->withJson([]);
+    }
+
+
+    function update(int $id, ServerRequest $request, Response $response): Response
     {
 
 

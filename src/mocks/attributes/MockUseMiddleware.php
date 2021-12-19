@@ -49,7 +49,8 @@ class MockUseMiddleware
 
         array_walk(
             callback: fn (object $class) =>
-            is_a($class, MiddlewareInterface::class) ? $class : throw new Exception("{$class::class} is not a slim middleware"),
+            is_a($class, MiddlewareInterface::class)
+                ? $class : throw new Exception("$class is not a slim middleware"),
             array: $array_of_objects
         );
     }

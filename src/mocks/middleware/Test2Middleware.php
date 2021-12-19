@@ -1,6 +1,6 @@
 <?php
 
-namespace Louiss0\SlimRouteRegistry\Middleware;
+namespace Louiss0\SlimRouteRegistry\Mocks\Middleware;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;

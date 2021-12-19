@@ -5,10 +5,13 @@ namespace Louiss0\SlimRouteRegistry\Classes;
 
 use Louiss0\SlimRouteRegistry\Attributes\{
     RouteMethod,
+    UseMiddleware,
     UseMiddleWareExceptFor,
     UseMiddleWareOn
 };
-use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
+
+
+require "./src/utils/helpers.php";
 
 use function Louiss0\SlimRouteRegistry\Utils\Helpers\{array_first};
 
@@ -21,7 +24,7 @@ final class InternalAttributesFilterer
     {
         return array_filter(
             callback: fn (object $class) =>
-            is_a($class, UseMiddlewareContract::class),
+            is_a($class, UseMiddleware::class),
             array: $classes
         );
     }

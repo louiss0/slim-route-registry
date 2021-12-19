@@ -26,7 +26,7 @@ class CrudController implements CRUDControllerContract
     }
 
 
-    function update(ServerRequest $request, Response $response): Response
+    function update(int $id, ServerRequest $request, Response $response): Response
     {
 
 

@@ -147,7 +147,7 @@ final class RouteRegistry
 
     /**  
      *  This method takes a path then a class_name  
-     *  a class with the method's of (index | store | destroy | update| upsert | show) will
+     *  a class with the method's of (collect | store | destroy | update| upsert | show) will
      *  be used then given a name by using its path as the prefix and the name as the 
      *  post fix
      *  
