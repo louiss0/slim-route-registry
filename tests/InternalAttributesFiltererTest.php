@@ -1,14 +1,14 @@
 <?php
 
-use Louiss0\SlimRouteRegistry\Attributes\{RouteMethod, UseMiddleware, UseMiddleWareExceptFor, UseMiddleWareOn};
+use Louiss0\SlimRouteRegistry\Attributes\{
+    RouteMethod,
+    UseMiddleWareExceptFor,
+    UseMiddleWareOn
+};
 use Louiss0\SlimRouteRegistry\Classes\{InternalAttributesFilterer};
 use Louiss0\SlimRouteRegistry\Mocks\Controllers\TestController;
 use PHPUnit\Framework\TestCase;
-
-
-
-
-
+use Psr\Http\Server\MiddlewareInterface;
 
 class InternalAttributesFiltererTest extends TestCase
 {
@@ -42,14 +42,16 @@ class InternalAttributesFiltererTest extends TestCase
 
 
         $instances =  array_map(
-            callback: fn (ReflectionAttribute $reflectionAttribute) => $reflectionAttribute->newInstance(),
+            callback: fn (ReflectionAttribute $reflectionAttribute) =>
+            $reflectionAttribute->newInstance(),
             array: $controller->getAttributes()
         );
 
-        $use_middleware_attributes = $internal_attributes_filterer->findUseMiddlewareAttribute(...$instances);
+        $use_middleware_attributes = $internal_attributes_filterer
+            ->findMiddlewareUsedAsAttributes(...$instances);
 
-        $this->assertInstanceOf(
-            UseMiddleware::class,
+        $this->assertContainsOnlyInstancesOf(
+            MiddlewareInterface::class,
             $use_middleware_attributes,
         );
     }

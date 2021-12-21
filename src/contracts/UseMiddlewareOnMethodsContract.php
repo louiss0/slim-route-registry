@@ -3,7 +3,8 @@
 
 namespace Louiss0\SlimRouteRegistry\Contracts;
 
-interface UseMiddlewareOnMethodsContract extends UseMiddlewareContract
+interface UseMiddlewareOnMethodsContract
 {
     function getMethodNames(): array;
+    function getMiddleware(): array;
 }

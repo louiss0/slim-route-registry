@@ -24,13 +24,11 @@ use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use Slim\App;
-use Slim\Interfaces\RouteCollectorProxyInterface;
 
 
 final class RouteRegistry
 {
 
-    private static App $app;
 
 
     private static RouteObjectCollector $route_object_collector;
@@ -41,34 +39,22 @@ final class RouteRegistry
 
     private static InternalAttributesFilterer $internal_attributes_filterer;
 
-    public static function setup(
-        RouteCollectorProxyInterface  $app
-    ) {
+    public static function setup(App $app)
+    {
         # code...
-
-        self::$app = $app;
 
         self::$route_object_collector = new RouteObjectCollector();
 
-        self::$group_manipulator = new GroupManipulator(group: $app);
+        self::$group_manipulator = new GroupManipulator($app);
 
         self::$internal_attributes_filterer = new InternalAttributesFilterer();
     }
 
 
-
-
-
-
-
     public static function getRoutes()
     {
-
-
-
-        return self::$app->getRouteCollector()->getRoutes();
+        return self::$group_manipulator->getInner_group()->getRouteCollector()->getRoutes();
     }
-
 
 
     public static function get(string $pattern, callable | array $callable)
@@ -139,7 +125,7 @@ final class RouteRegistry
     }
 
 
-    public function groupMiddleware(MiddlewareInterface ...$middleware): void
+    public static function groupMiddleware(MiddlewareInterface ...$middleware): void
     {
         self::$group_manipulator->groupMiddleware(...$middleware);
     }
@@ -162,6 +148,7 @@ final class RouteRegistry
 
         $reflection = new ReflectionClass($class_name);
 
+
         [
             $methods,
             $reflection_class_name,
@@ -180,11 +167,11 @@ final class RouteRegistry
         );
 
         [
-            $use_middleware_instance,
+            $middleware,
             $use_middleware_on_attributes,
             $use_middleware_except_for_attributes
         ] = [
-            self::$internal_attributes_filterer->findUseMiddlewareAttribute(...$constructor_attribute_instances),
+            self::$internal_attributes_filterer->findMiddlewareUsedAsAttributes(...$constructor_attribute_instances),
             self::$internal_attributes_filterer->amassUseMiddlewareOnAttributes(...$constructor_attribute_instances),
             self::$internal_attributes_filterer->amassUseMiddlewareExceptForAttributes(...$constructor_attribute_instances),
         ];
@@ -203,9 +190,9 @@ final class RouteRegistry
                     $method_attributes
                 );
 
-                [$route_method_instance, $use_middleware_instance] = [
+                [$route_method_instance, $middleware] = [
                     self::$internal_attributes_filterer->findRouteMethodAttributeInstance(...$method_attribute_instances),
-                    self::$internal_attributes_filterer->findUseMiddlewareAttribute(...$method_attribute_instances),
+                    self::$internal_attributes_filterer->findMiddlewareUsedAsAttributes(...$method_attribute_instances),
                 ];
 
                 $method_name_exists_in_automatic_registration_method_names =
@@ -214,14 +201,14 @@ final class RouteRegistry
                 if (!$route_method_instance && $method_name_exists_in_automatic_registration_method_names) {
 
 
-                    if ($use_middleware_instance) {
+                    if ($middleware) {
                         # code...
                         return self::$route_object_collector
                             ->addRouteRouteGroupObjectBasedOnCallbackName(
                                 $path,
                                 $reflection_class_name,
                                 $method_name,
-                                $use_middleware_instance->getMiddleware()
+                                $middleware
                             );
                     }
 
@@ -240,35 +227,36 @@ final class RouteRegistry
 
 
 
+                if ($route_method_instance) {
+                    if (!$middleware) {
 
-                if (!$use_middleware_instance) {
 
 
+                        return self::$route_object_collector->addRouteNecessitiesToRouteObject(
+                            class_name: $reflection_class_name,
+                            method_name: $route_method_instance->getMethod(),
+                            route_name: $route_method_instance->getName(),
+                            callback_name: $method_name,
+                            path: $route_method_instance->getPath()
+                        );
+                    }
 
-                    return self::$route_object_collector->addRouteNecessitiesToRouteObject(
+
+                    self::$route_object_collector->addRouteNecessitiesToRouteObject(
                         class_name: $reflection_class_name,
                         method_name: $route_method_instance->getMethod(),
                         route_name: $route_method_instance->getName(),
                         callback_name: $method_name,
+                        middleware: $middleware,
                         path: $route_method_instance->getPath()
                     );
                 }
-
-
-                self::$route_object_collector->addRouteNecessitiesToRouteObject(
-                    class_name: $reflection_class_name,
-                    method_name: $route_method_instance->getMethod(),
-                    route_name: $route_method_instance->getName(),
-                    callback_name: $method_name,
-                    middleware: $use_middleware_instance->getMiddleware(),
-                    path: $route_method_instance->getPath()
-                );
             },
             array: $methods
         );
 
 
-        if (!$use_middleware_instance) {
+        if (!$middleware) {
             # code...
 
             self::$route_object_collector
@@ -294,7 +282,7 @@ final class RouteRegistry
 
 
 
-        self::$group_manipulator->subGroupMiddleware(...$use_middleware_instance->getMiddleware());
+        self::$group_manipulator->subGroupMiddleware(...$middleware);
 
         self::$route_object_collector->flushRouteObjects();
     }
@@ -330,7 +318,6 @@ final class RouteRegistry
                 500
             );
         }
-
 
         array_walk(
             callback: fn ($resource_option) =>

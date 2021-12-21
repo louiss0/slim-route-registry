@@ -9,7 +9,6 @@ use Louiss0\SlimRouteRegistry\Attributes\{
     Patch,
     Post,
     RouteMethod,
-    UseMiddleware,
     UseMiddleWareExceptFor,
 };
 use Louiss0\SlimRouteRegistry\Mocks\Middleware\{
@@ -19,8 +18,8 @@ use Louiss0\SlimRouteRegistry\Mocks\Middleware\{
 };
 
 #[
-    UseMiddleware([TestMiddleware::class]),
     UseMiddleWareExceptFor(["collect", "update"], [Test2Middleware::class]),
+    TestMiddleware,
 ]
 class TestController
 {
@@ -28,7 +27,7 @@ class TestController
 
     #[
         RouteMethod("", "get.all", "get"),
-        UseMiddleware([Test3Middleware::class]),
+        Test3Middleware,
     ]
     function getAll()
     {
@@ -36,14 +35,14 @@ class TestController
 
     #[
         Get("/{id:\d+}", "get.one",),
-        UseMiddleware([Test3Middleware::class]),
+        Test3Middleware,
     ]
     function getOne()
     {
     }
     #[
         Post("", "create",),
-        UseMiddleware([Test3Middleware::class]),
+        Test3Middleware,
     ]
     function create()
     {
@@ -52,7 +51,7 @@ class TestController
 
     #[
         Patch("/{id:\d+}", "update.one",),
-        UseMiddleware([Test3Middleware::class]),
+        Test3Middleware,
     ]
     function updateOne()
     {
@@ -60,7 +59,7 @@ class TestController
 
     #[
         Delete("/{id:\d+}", "delete",),
-        UseMiddleware([Test3Middleware::class]),
+        Test3Middleware,
     ]
     function deleteOne()
     {

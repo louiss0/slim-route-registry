@@ -3,6 +3,7 @@
 namespace Louiss0\SlimRouteRegistry\Mocks\Controllers;
 
 use Louiss0\SlimRouteRegistry\Contracts\CRUDControllerContract;
+use Louiss0\SlimRouteRegistry\Mocks\Middleware\TestMiddleware;
 use Slim\Http\ServerRequest;
 use Slim\Http\Response;
 

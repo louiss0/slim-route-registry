@@ -1,7 +1,6 @@
 <?php
 
 use DI\Bridge\Slim\Bridge;
-use Louiss0\SlimRouteRegistry\Attributes\UseMiddleWareOn;
 use Louiss0\SlimRouteRegistry\Classes\{GroupManipulator};
 use Louiss0\SlimRouteRegistry\Enums\RouteMethodNames;
 use Louiss0\SlimRouteRegistry\Mocks\Controllers\CrudController;

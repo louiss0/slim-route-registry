@@ -183,7 +183,7 @@ on a controller.
 
 ### [Method Middleware](#sections)
 
-When it comes to putting middleware in a route you must use the `UseMiddleware` attribute or the following attributes on a controller:
+When it comes to putting middleware in a route you must use a class that implements the Middleware interface as a attribute or the following attributes on a controller:
 
 ```php
 
