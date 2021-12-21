@@ -11,8 +11,7 @@ use Louiss0\SlimRouteRegistry\Attributes\{
 };
 use Louiss0\SlimRouteRegistry\Contracts\RouteMethodContract;
 use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
-
-// require "./src/utils/helpers.php";
+use Psr\Http\Server\MiddlewareInterface;
 
 use function Louiss0\SlimRouteRegistry\Utils\Helpers\{array_first};
 
@@ -21,12 +20,12 @@ final class InternalAttributesFilterer
 
 
 
-    public function findUseMiddlewareAttribute(object ...$classes): ?UseMiddlewareContract
+    public function findMiddlewareUsedAsAttributes(object ...$classes)
     {
-        return array_first(
+        return array_filter(
             callback: fn (object $class) =>
-            is_a($class, UseMiddleware::class),
-            array: $classes,
+            is_a($class, MiddlewareInterface::class),
+            array: $classes
         );
     }
 
