@@ -27,7 +27,7 @@ final class RouteObjectCollector
         string $method_name,
         string $route_name,
         string $callback_name,
-        array $middleware,
+        array $middleware = [],
         string $path = "",
     ): void {
         # code...
@@ -70,11 +70,11 @@ final class RouteObjectCollector
     }
 
 
-    public function addRouteRouteGroupObjectBasedOnMethodName(
+    public function addRouteRouteGroupObjectBasedOnCallbackName(
         string $path,
         string $class_name,
         string $callback_name,
-        array $middleware,
+        array $middleware = [],
     ): void {
         # code...
 
@@ -83,7 +83,7 @@ final class RouteObjectCollector
         $route_name = "{$path}.{$callback_name}";
 
         switch ($callback_name) {
-            case AutomaticRegistrationMethodNames::GET_ANY:
+            case AutomaticRegistrationMethodNames::GET_MULTIPLE:
                 $this->addRouteNecessitiesToRouteObject(
                     $class_name,
                     RouteMethodNames::GET,

@@ -4,32 +4,27 @@ declare(strict_types=1);
 
 namespace  Louiss0\SlimRouteRegistry;
 
+
 require_once "utils/helpers.php";
 
 use function Louiss0\SlimRouteRegistry\Utils\Helpers\{
     array_every,
-    array_first
 };
 
 use Closure;
 use Exception;
-use Louiss0\SlimRouteRegistry\Attributes\{
-    RouteMethod,
-    UseMiddleWareExceptFor,
-    UseMiddleWareOn
-};
-use Louiss0\SlimRouteRegistry\Enums\AutomaticRegistrationMethodNames;
 use Louiss0\SlimRouteRegistry\Classes\{
     GroupManipulator,
+    InternalAttributesFilterer,
     RouteObjectCollector,
-    MiddlewareRegistrar
 };
+use Louiss0\SlimRouteRegistry\Enums\AutomaticRegistrationMethodNames;
+use Psr\Http\Server\MiddlewareInterface;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionMethod;
 use Slim\App;
 use Slim\Interfaces\RouteCollectorProxyInterface;
-use Slim\Routing\RouteCollectorProxy;
 
 
 final class RouteRegistry
@@ -43,30 +38,21 @@ final class RouteRegistry
 
     private static GroupManipulator $group_manipulator;
 
-    public final static function setup(
+
+    private static InternalAttributesFilterer $internal_attributes_filterer;
+
+    public static function setup(
         RouteCollectorProxyInterface  $app
     ) {
         # code...
-
 
         self::$app = $app;
 
         self::$route_object_collector = new RouteObjectCollector();
 
-        $inner_group = $app;
+        self::$group_manipulator = new GroupManipulator(group: $app);
 
-        $outer_group = self::$app->group("", function (RouteCollectorProxy $group) use (&$inner_group) {
-
-            $inner_group = $group;
-        });
-
-
-        self::$group_manipulator = new GroupManipulator();
-
-
-        self::$group_manipulator
-            ->setInner_group($inner_group)
-            ->setOuter_group($outer_group);
+        self::$internal_attributes_filterer = new InternalAttributesFilterer();
     }
 
 
@@ -141,36 +127,26 @@ final class RouteRegistry
      *  This function registers a route Group 
      * 
      */
-    public static function group(string $path, Closure $callable): void
+    public static function group(string $path, Closure $closure): void
     {
         # code...
 
-        $group_manipulator =    self::$group_manipulator;
 
-        $inner_group = $group_manipulator
-            ->getInner_group();
-
-        $outer_group =
-            $inner_group->group(
-                $path,
-                function (RouteCollectorProxyInterface $group) use ($callable, $group_manipulator) {
-
-
-                    $group_manipulator
-                        ->setInner_group($group);
-
-                    $callable();
-                }
-            );
-
-
-        $group_manipulator->setOuter_group($outer_group);
+        self::$group_manipulator->resetInnerAndOuterGroupsAndCallClosureFromWithinGroupCreationClosure(
+            $path,
+            $closure
+        );
     }
 
 
+    public function groupMiddleware(MiddlewareInterface ...$middleware): void
+    {
+        self::$group_manipulator->groupMiddleware(...$middleware);
+    }
+
     /**  
      *  This method takes a path then a class_name  
-     *  a class with the method's of (index | store | destroy | update| upsert | show) will
+     *  a class with the method's of (collect | store | destroy | update| upsert | show) will
      *  be used then given a name by using its path as the prefix and the name as the 
      *  post fix
      *  
@@ -180,151 +156,147 @@ final class RouteRegistry
     static function resource(string $path, string $class_name): void
     {
         # code...
-        $constructor_attribute_instances = [];
 
-        $group = self::$group_manipulator->getInner_group()->group(
-            $path,
-            function (RouteCollectorProxyInterface $group) use (
-                $class_name,
-                $path,
-                &$constructor_attribute_instances
-            ) {
-
-                $reflection = new ReflectionClass($class_name);
-
-                $methods = $reflection->getMethods();
-
-                $reflection_class_name = $reflection->getName();
-
-                $reflection_attributes = $reflection->getAttributes();
+        self::$group_manipulator->setInnerAndOuterSubGroupsBasedOnPath($path);
 
 
-                $constructor_attribute_instances = array_merge(
-                    $constructor_attribute_instances,
-                    array_map(
-                        callback: fn (ReflectionAttribute $reflection_attribute) =>
-                        $reflection_attribute->newInstance(),
-                        array: $reflection_attributes
-                    )
+        $reflection = new ReflectionClass($class_name);
+
+        [
+            $methods,
+            $reflection_class_name,
+            $reflection_attributes,
+        ] = [
+            $reflection->getMethods(),
+            $reflection->getName(),
+            $reflection->getAttributes(),
+        ];
+
+
+        $constructor_attribute_instances = array_map(
+            fn (ReflectionAttribute $attribute) =>
+            $attribute->newInstance(),
+            $reflection_attributes
+        );
+
+        [
+            $use_middleware_instance,
+            $use_middleware_on_attributes,
+            $use_middleware_except_for_attributes
+        ] = [
+            self::$internal_attributes_filterer->findUseMiddlewareAttribute(...$constructor_attribute_instances),
+            self::$internal_attributes_filterer->amassUseMiddlewareOnAttributes(...$constructor_attribute_instances),
+            self::$internal_attributes_filterer->amassUseMiddlewareExceptForAttributes(...$constructor_attribute_instances),
+        ];
+
+        array_walk(
+            callback: function (ReflectionMethod $method) use ($path, $reflection_class_name) {
+
+                [$method_name, $method_attributes] = [
+                    $method->getName(),
+                    $method->getAttributes()
+                ];
+
+                $method_attribute_instances = array_map(
+                    fn (ReflectionAttribute $attribute) =>
+                    $attribute->newInstance(),
+                    $method_attributes
                 );
 
+                [$route_method_instance, $use_middleware_instance] = [
+                    self::$internal_attributes_filterer->findRouteMethodAttributeInstance(...$method_attribute_instances),
+                    self::$internal_attributes_filterer->findUseMiddlewareAttribute(...$method_attribute_instances),
+                ];
+
+                $method_name_exists_in_automatic_registration_method_names =
+                    AutomaticRegistrationMethodNames::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
+
+                if (!$route_method_instance && $method_name_exists_in_automatic_registration_method_names) {
 
 
-                $use_except_for_middleware_instances =
-                    array_filter(
-                        callback: fn (object $class) =>  is_a($class, UseMiddleWareExceptFor::class),
-                        array: $constructor_attribute_instances
-                    );
-
-                $use_on_middleware_instances =
-                    array_filter(
-                        callback: fn (object $class) =>
-                        is_a($class, UseMiddleWareOn::class),
-                        array: $constructor_attribute_instances
-                    );
-
-                $add_route_objects_to_route_group_objects_based_on_data_given =
-                    function (ReflectionMethod $method) use (
-                        $reflection_class_name,
-                        $path,
-                    ) {
+                    if ($use_middleware_instance) {
                         # code...
-
-                        $method_attribute_instances = array_map(
-                            callback: fn (ReflectionAttribute $attribute) => $attribute->newInstance(),
-                            array: $method->getAttributes()
-                        );
-
-
-                        $middleware_collection =  array_filter(
-                            callback: fn (object $object) =>
-                            is_a($object, MiddlewareInterface::class),
-                            array: $method_attribute_instances
-                        );
-
-                        $method_name = $method->getName();
-
-                        $check_if_name_exists_in_automatic_registration_method_names =
-                            AutomaticRegistrationMethodNames
-                            ::checkIfMethodNameExistsInAutomaticRegistrationMethodNames($method_name);
-
-
-
-                        if ($check_if_name_exists_in_automatic_registration_method_names) {
-
-                            return self::$route_object_collector
-                                ->addRouteRouteGroupObjectBasedOnMethodName(
-                                    path: $path,
-                                    class_name: $reflection_class_name,
-                                    callback_name: $method_name,
-                                    middleware: $middleware_collection
-                                );
-                        }
-
-
-                        $route_method_attribute =
-                            array_first(
-                                callback: fn (object $object) => is_a($object, RouteMethod::class),
-                                array: $method_attribute_instances
+                        return self::$route_object_collector
+                            ->addRouteRouteGroupObjectBasedOnCallbackName(
+                                $path,
+                                $reflection_class_name,
+                                $method_name,
+                                $use_middleware_instance->getMiddleware()
                             );
+                    }
+
+                    return self::$route_object_collector
+                        ->addRouteRouteGroupObjectBasedOnCallbackName(
+                            $path,
+                            $reflection_class_name,
+                            $method_name,
+                        );
+                } elseif ($route_method_instance && $method_name_exists_in_automatic_registration_method_names) {
+
+
+                    throw new Exception("Don't add route methods attributes to automatic registration methods");
+                }
 
 
 
-                        if ($route_method_attribute) {
-
-                            return self::$route_object_collector
-                                ->addRouteNecessitiesToRouteObject(
-                                    $reflection_class_name,
-                                    $route_method_attribute->getMethod(),
-                                    $route_method_attribute->getName(),
-                                    $method_name,
-                                    $middleware_collection,
-                                    $route_method_attribute->getPath()
-                                );
-                        }
-                    };
 
 
-                array_walk(
-                    callback: $add_route_objects_to_route_group_objects_based_on_data_given,
-                    array: $methods
+                if (!$use_middleware_instance) {
+
+
+
+                    return self::$route_object_collector->addRouteNecessitiesToRouteObject(
+                        class_name: $reflection_class_name,
+                        method_name: $route_method_instance->getMethod(),
+                        route_name: $route_method_instance->getName(),
+                        callback_name: $method_name,
+                        path: $route_method_instance->getPath()
+                    );
+                }
+
+
+                self::$route_object_collector->addRouteNecessitiesToRouteObject(
+                    class_name: $reflection_class_name,
+                    method_name: $route_method_instance->getMethod(),
+                    route_name: $route_method_instance->getName(),
+                    callback_name: $method_name,
+                    middleware: $use_middleware_instance->getMiddleware(),
+                    path: $route_method_instance->getPath()
                 );
-
-                self::$route_object_collector
-                    ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(
-                        ...$use_on_middleware_instances
-                    )
-                    ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(
-                        ...$use_except_for_middleware_instances
-                    );
-
-
-
-
-
-                self::$group_manipulator
-                    ->registerRouteMethods(
-                        route_group_objects: self::$route_object_collector
-                            ->getRoute_group_objects(),
-                        group: $group
-                    );
-
-
-                self::$route_object_collector->flushRouteObjects();
-            }
+            },
+            array: $methods
         );
 
 
-        $middleware_group = array_filter(
-            callback: fn (object $class) => is_a($class, MiddlewareInterface::class),
-            array: $constructor_attribute_instances
-        );
+        if (!$use_middleware_instance) {
+            # code...
 
+            self::$route_object_collector
+                ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(...$use_middleware_on_attributes)
+                ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(...$use_middleware_except_for_attributes);
+
+            self::$group_manipulator
+                ->registerRouteMethods(self::$route_object_collector->getRoute_group_objects());
+
+            return;
+        }
+
+
+
+
+        self::$route_object_collector
+            ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(...$use_middleware_on_attributes)
+            ->replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(...$use_middleware_except_for_attributes);
 
 
         self::$group_manipulator
-            ->setOuter_group($group)
-            ->registerMiddleware(...$middleware_group);
+            ->registerRouteMethods(self::$route_object_collector->getRoute_group_objects());
+
+
+
+        self::$group_manipulator->subGroupMiddleware(...$use_middleware_instance->getMiddleware());
+
+        self::$route_object_collector->flushRouteObjects();
     }
 
 

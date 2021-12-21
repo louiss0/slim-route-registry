@@ -2,6 +2,7 @@
 
 namespace Louiss0\SlimRouteRegistry\Classes;
 
+use Closure;
 use Psr\Http\Server\MiddlewareInterface;
 use Slim\Interfaces\RouteCollectorProxyInterface;
 use Slim\Interfaces\RouteGroupInterface;
@@ -12,8 +13,10 @@ class GroupManipulator
 
 
     private RouteCollectorProxyInterface $inner_group;
+    private RouteCollectorProxyInterface $sub_inner_group;
 
     private RouteGroupInterface $outer_group;
+    private RouteGroupInterface $sub_outer_group;
 
 
 
@@ -26,25 +29,54 @@ class GroupManipulator
     }
 
 
-    public function __construct()
-    {
+    public function __construct(
+        RouteCollectorProxyInterface $group,
+    ) {
+
+        $outer_group = $group->group("", function (RouteCollectorProxyInterface $group) {
+
+            $this->setInner_group($group);
+        });
+
+        $this->setOuter_group($outer_group);
     }
 
-    /**
-     * Get the value of MiddlewareRegistrar
-     */
-    public function getMiddlewareRegistrar()
+
+    public function resetInnerAndOuterGroupsAndCallClosureFromWithinGroupCreationClosure(string $path, Closure $closure)
     {
-        return $this->middlewareRegistrar;
+
+        $outer_group = $this->getInner_group()
+            ->group($path, function (RouteCollectorProxyInterface $group) use ($closure) {
+
+                $this->setInner_group($group);
+
+                $closure();
+            });
+
+        $this->setOuter_group($outer_group);
     }
 
 
 
-    public function setInner_group(RouteCollectorProxyInterface $inner_group): self
+    public function setInnerAndOuterSubGroupsBasedOnPath(string $path): void
+    {
+
+        $outer_group = $this->getInner_group()
+            ->group($path, function (RouteCollectorProxyInterface $group) {
+
+                $this->setSub_inner_group($group);
+            });
+
+        $this->setSub_outer_group($outer_group);
+    }
+
+
+    private function setInner_group(RouteCollectorProxyInterface $inner_group): self
     {
 
 
         $this->inner_group = $inner_group;
+
 
         return $this;
     }
@@ -57,7 +89,7 @@ class GroupManipulator
 
 
 
-    public function setOuter_group(RouteGroupInterface $outer_group): self
+    private function setOuter_group(RouteGroupInterface $outer_group): self
     {
 
         $this->outer_group = $outer_group;
@@ -65,16 +97,29 @@ class GroupManipulator
         return $this;
     }
 
-    public function registerMiddleware(string | object ...$middleware)
+
+    public function groupMiddleware(MiddlewareInterface ...$middleware)
     {
         # code...
 
-
-        return  $this->middlewareRegistrar
-            ->registerMiddleware(...$middleware);
+        array_walk(
+            callback: fn (MiddlewareInterface $middleware) =>
+            $this->getOuter_group()->addMiddleware($middleware),
+            array: $middleware
+        );
     }
 
 
+    public function subGroupMiddleware(MiddlewareInterface ...$middleware)
+    {
+        # code...
+
+        array_walk(
+            callback: fn (MiddlewareInterface $middleware) =>
+            $this->getSub_outer_group()->addMiddleware($middleware),
+            array: $middleware
+        );
+    }
 
 
 
@@ -133,12 +178,12 @@ class GroupManipulator
 
 
 
-    function registerRouteMethods(array $route_group_objects, RouteCollectorProxyInterface $group)
+    function registerRouteMethods(array $route_group_objects,): void
     {
 
         # code...
         array_walk(
-            callback: function ($route_group_object,) use ($group) {
+            callback: function ($route_group_object,) {
 
                 [
                     "class_name" => $class_name,
@@ -151,20 +196,13 @@ class GroupManipulator
                 ] = $route_group_object;
 
 
-                $current_route = $group
+                $current_route = $this->getSub_inner_group()
                     ->$method_name($path, [$class_name, $callback_name])
                     ->setName($route_name);
 
                 array_walk(
-                    callback: function (string| MiddlewareInterface $middleware) use ($current_route) {
-                        if (is_string($middleware)) {
-                            # code...
-                            return
-                                $current_route->addMiddleware(new $middleware);
-                        }
-
-                        $current_route->addMiddleware($middleware);
-                    },
+                    callback: fn (MiddlewareInterface $middleware) =>
+                    $current_route->addMiddleware($middleware),
                     array: $middleware
                 );
             },
@@ -172,5 +210,45 @@ class GroupManipulator
 
 
         );
+    }
+
+    /**
+     * Set the value of sub_inner_group
+     *
+     * @return  self
+     */
+    private function setSub_inner_group($sub_inner_group)
+    {
+        $this->sub_inner_group = $sub_inner_group;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of sub_outer_group
+     *
+     * @return  self
+     */
+    private function setSub_outer_group($sub_outer_group)
+    {
+        $this->sub_outer_group = $sub_outer_group;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of sub_inner_group
+     */
+    private function getSub_inner_group()
+    {
+        return $this->sub_inner_group;
+    }
+
+    /**
+     * Get the value of sub_outer_group
+     */
+    public function getSub_outer_group()
+    {
+        return $this->sub_outer_group;
     }
 }

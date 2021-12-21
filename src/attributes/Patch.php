@@ -12,8 +12,8 @@ final class Patch extends RouteMethod
 
 
     public function __construct(
-        private $path,
-        private $name
+        private string $path,
+        private string $name
     ) {
 
 

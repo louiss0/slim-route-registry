@@ -2,13 +2,12 @@
 
 
 
-namespace Louiss0\SlimRouteRegistry\Attributes;
+namespace Louiss0\SlimRouteRegistry\Mocks\Attributes;
 
 use Attribute;
 use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareOnMethodsContract;
 
-#[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class UseMiddleWareOn  implements UseMiddlewareOnMethodsContract
+final class MockUseMiddleWareOn  implements UseMiddlewareOnMethodsContract
 {
 
 
@@ -33,9 +32,6 @@ final class UseMiddleWareOn  implements UseMiddlewareOnMethodsContract
 
     function getMiddleware(): array
     {
-        return array_map(
-            fn (string $middleware_ref) => new $middleware_ref,
-            $this->middleware
-        );
+        return $this->middleware;
     }
 }

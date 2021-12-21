@@ -1,12 +1,11 @@
 <?php
 
-namespace Louiss0\SlimRouteRegistry\Attributes;
 
-use Attribute;
-use Louiss0\SlimRouteRegistry\Contracts\RouteMethodContract;
+namespace Louiss0\SlimRouteRegistry\Mocks\Attributes;
 
-#[Attribute(Attribute::TARGET_METHOD)]
-class RouteMethod implements RouteMethodContract
+use RouteMethodContract;
+
+class MockRouteMethod implements RouteMethodContract
 {
 
     public function __construct(
