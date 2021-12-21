@@ -1,6 +1,5 @@
 vendor
 
-# src/controllers
-# src/middleware
+# src/mocks
 # tests
 .phpunit.result.cache
