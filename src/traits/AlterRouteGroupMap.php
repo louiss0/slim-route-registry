@@ -4,7 +4,9 @@
 namespace Louiss0\SlimRouteRegistry\Traits;
 
 use Closure;
-use Louiss0\SlimRouteRegistry\Contracts\{UseMiddlewareContract, UseMiddlewareOnMethodsContract};
+use Louiss0\SlimRouteRegistry\Attributes\UseMiddleWareExceptFor;
+use Louiss0\SlimRouteRegistry\Attributes\UseMiddleWareOn;
+use Louiss0\SlimRouteRegistry\Contracts\{UseMiddlewareOnMethodsContract};
 
 trait AlterRouteGroupMap
 {
@@ -19,29 +21,6 @@ trait AlterRouteGroupMap
         return $this->route_group_objects;
     }
 
-
-    public function createNewRouteGroupObjectsFromUseMiddlewareInstance(UseMiddlewareContract $use_middleware_instance): self
-    {
-        $middleware = $use_middleware_instance->getMiddleware();
-
-
-
-        $this->route_group_objects = array_map(
-            callback: function (array $route_group_object) use ($middleware) {
-                [
-                    "middleware" => $old_middleware
-                ] = $route_group_object;
-                return array_merge(
-                    $route_group_object,
-                    ["middleware" => [...$old_middleware, $middleware]]
-                );
-            },
-            array: $this->route_group_objects
-        );
-
-
-        return $this;
-    }
 
 
     private function createNewRouteGroupObjectsFromUseMiddlewareMethodsNamesAndMiddleware(
@@ -76,7 +55,7 @@ trait AlterRouteGroupMap
     }
 
 
-    public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(UseMiddlewareContract ...$use_middleware_instances): self
+    public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareOnAttributes(UseMiddleWareOn ...$use_middleware_instances): static
     {
         # code...
 
@@ -108,8 +87,8 @@ trait AlterRouteGroupMap
 
 
     public function replaceRouteGroupObjectsWithOnesCreatedBasedOnUseMiddlewareExceptForAttributes(
-        UseMiddlewareContract ...$use_middleware_instances
-    ): self {
+        UseMiddleWareExceptFor ...$use_middleware_instances
+    ): static {
 
         # code...
 

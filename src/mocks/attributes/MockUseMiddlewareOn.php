@@ -5,9 +5,9 @@
 namespace Louiss0\SlimRouteRegistry\Mocks\Attributes;
 
 use Attribute;
-use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
+use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareOnMethodsContract;
 
-final class MockUseMiddleWareOn  implements UseMiddlewareContract
+final class MockUseMiddleWareOn  implements UseMiddlewareOnMethodsContract
 {
 
 

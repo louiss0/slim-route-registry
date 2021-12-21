@@ -14,16 +14,16 @@ class CrudController implements CRUDControllerContract
     {
         return $response->withJson([]);
     }
+    function show(int $id, Response $response): Response
+    {
+        return $response->withJson([]);
+    }
 
     function store(ServerRequest $request, Response $response): Response
     {
         return $response->withJson([]);
     }
 
-    function show(int $id, Response $response): Response
-    {
-        return $response->withJson([]);
-    }
 
 
     function update(int $id, ServerRequest $request, Response $response): Response

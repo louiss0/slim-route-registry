@@ -13,8 +13,10 @@ class GroupManipulator
 
 
     private RouteCollectorProxyInterface $inner_group;
+    private RouteCollectorProxyInterface $sub_inner_group;
 
     private RouteGroupInterface $outer_group;
+    private RouteGroupInterface $sub_outer_group;
 
 
 
@@ -40,7 +42,7 @@ class GroupManipulator
     }
 
 
-    public function resetInnerAndOuterGroupsAndCallClosureFromWithinGroupCreationClosure(string $path = "", ?Closure $closure = null)
+    public function resetInnerAndOuterGroupsAndCallClosureFromWithinGroupCreationClosure(string $path, Closure $closure)
     {
 
         $outer_group = $this->getInner_group()
@@ -48,7 +50,7 @@ class GroupManipulator
 
                 $this->setInner_group($group);
 
-                $closure?->call($group);
+                $closure();
             });
 
         $this->setOuter_group($outer_group);
@@ -56,6 +58,17 @@ class GroupManipulator
 
 
 
+    public function setInnerAndOuterSubGroupsBasedOnPath(string $path): void
+    {
+
+        $outer_group = $this->getInner_group()
+            ->group($path, function (RouteCollectorProxyInterface $group) {
+
+                $this->setSub_inner_group($group);
+            });
+
+        $this->setSub_outer_group($outer_group);
+    }
 
 
     private function setInner_group(RouteCollectorProxyInterface $inner_group): self
@@ -85,6 +98,28 @@ class GroupManipulator
     }
 
 
+    public function groupMiddleware(MiddlewareInterface ...$middleware)
+    {
+        # code...
+
+        array_walk(
+            callback: fn (MiddlewareInterface $middleware) =>
+            $this->getOuter_group()->addMiddleware($middleware),
+            array: $middleware
+        );
+    }
+
+
+    public function subGroupMiddleware(MiddlewareInterface ...$middleware)
+    {
+        # code...
+
+        array_walk(
+            callback: fn (MiddlewareInterface $middleware) =>
+            $this->getSub_outer_group()->addMiddleware($middleware),
+            array: $middleware
+        );
+    }
 
 
 
@@ -143,7 +178,7 @@ class GroupManipulator
 
 
 
-    function registerRouteMethods(array $route_group_objects,)
+    function registerRouteMethods(array $route_group_objects,): void
     {
 
         # code...
@@ -161,20 +196,13 @@ class GroupManipulator
                 ] = $route_group_object;
 
 
-                $current_route = $this->getInner_group()
+                $current_route = $this->getSub_inner_group()
                     ->$method_name($path, [$class_name, $callback_name])
                     ->setName($route_name);
 
                 array_walk(
-                    callback: function (string| MiddlewareInterface $middleware) use ($current_route) {
-                        if (is_string($middleware)) {
-                            # code...
-                            return
-                                $current_route->addMiddleware(new $middleware);
-                        }
-
-                        $current_route->addMiddleware($middleware);
-                    },
+                    callback: fn (MiddlewareInterface $middleware) =>
+                    $current_route->addMiddleware($middleware),
                     array: $middleware
                 );
             },
@@ -182,5 +210,45 @@ class GroupManipulator
 
 
         );
+    }
+
+    /**
+     * Set the value of sub_inner_group
+     *
+     * @return  self
+     */
+    private function setSub_inner_group($sub_inner_group)
+    {
+        $this->sub_inner_group = $sub_inner_group;
+
+        return $this;
+    }
+
+    /**
+     * Set the value of sub_outer_group
+     *
+     * @return  self
+     */
+    private function setSub_outer_group($sub_outer_group)
+    {
+        $this->sub_outer_group = $sub_outer_group;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of sub_inner_group
+     */
+    private function getSub_inner_group()
+    {
+        return $this->sub_inner_group;
+    }
+
+    /**
+     * Get the value of sub_outer_group
+     */
+    public function getSub_outer_group()
+    {
+        return $this->sub_outer_group;
     }
 }

@@ -27,7 +27,7 @@ final class RouteObjectCollector
         string $method_name,
         string $route_name,
         string $callback_name,
-        array $middleware,
+        array $middleware = [],
         string $path = "",
     ): void {
         # code...
@@ -74,7 +74,7 @@ final class RouteObjectCollector
         string $path,
         string $class_name,
         string $callback_name,
-        array $middleware,
+        array $middleware = [],
     ): void {
         # code...
 

@@ -3,10 +3,10 @@
 namespace Louiss0\SlimRouteRegistry\Attributes;
 
 use Attribute;
-use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
+use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareOnMethodsContract;
 
 #[Attribute(Attribute::TARGET_CLASS | Attribute::IS_REPEATABLE)]
-final class UseMiddleWareExceptFor implements UseMiddlewareContract
+final class UseMiddleWareExceptFor implements UseMiddlewareOnMethodsContract
 {
 
 
@@ -30,6 +30,10 @@ final class UseMiddleWareExceptFor implements UseMiddlewareContract
      */
     public function getMiddleware(): array
     {
-        return $this->middleware;
+        return
+            array_map(
+                fn (string $middleware_ref) => new $middleware_ref,
+                $this->middleware
+            );;
     }
 }

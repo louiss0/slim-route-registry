@@ -15,12 +15,12 @@ class ResourceController implements ResourceControllerContract
         return $response->withJson([]);
     }
 
-    function store(ServerRequest $request, Response $response): Response
+    function show(int $id, Response $response): Response
     {
         return $response->withJson([]);
     }
 
-    function show(int $id, Response $response): Response
+    function store(ServerRequest $request, Response $response): Response
     {
         return $response->withJson([]);
     }

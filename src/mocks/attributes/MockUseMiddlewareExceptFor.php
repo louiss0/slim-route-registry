@@ -2,9 +2,9 @@
 
 namespace Louiss0\SlimRouteRegistry\Mocks\Attributes;
 
-use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareContract;
+use Louiss0\SlimRouteRegistry\Contracts\UseMiddlewareOnMethodsContract;
 
-final class MockUseMiddleWareExceptFor implements UseMiddlewareContract
+final class MockUseMiddleWareExceptFor implements UseMiddlewareOnMethodsContract
 {
 
 
