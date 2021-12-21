@@ -37,7 +37,7 @@ Doing this will setup all of the systems necessary to create controllers called 
 
 - [Resources](#resources)
   - [Manual Resources](#manual-resources)
-  - [[Automatic Resources]](#automatic-resources)
+  - [Automatic Resources](#automatic-resources)
 - [Group Scoping](#group-Scoping)
 - [Middleware](#middleware)
   - [Resource Middleware](#resource-middleware)
