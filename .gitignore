@@ -1,5 +1,5 @@
 vendor
 
-# src/mocks
-tests
+src/mocks
+# tests
 .phpunit.result.cache
