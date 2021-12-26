@@ -206,11 +206,25 @@ When it comes to putting middleware in a route you must use a class that impleme
 
 > Note: The middleware will be applied in the following order.
 >
-> 1.  `UseMiddleware` **when used on a method**
-> 2.  `UseMiddlewareOn`
-> 3.  `UseMiddlewareExceptFor`
+> 1.  `UseMiddlewareOn`
+> 1.  `UseMiddlewareExceptFor`
 
 > Note: The `UseMiddlewareOn` and Use `UseMiddlewareExceptFor` attributes are repeatable
+
+```php
+
+#[
+	UseMiddlewareOn(
+		["collect", "destroy"],
+		[]
+	),
+	UseMiddlewareOn(
+		["update", "store"],
+	)
+]
+class Controller {}
+
+```
 
 ```php
 
