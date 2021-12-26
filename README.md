@@ -38,13 +38,13 @@ Doing this will setup all of the systems necessary to create controllers called 
 - [Resources](#resources)
   - [Manual Resources](#manual-resources)
   - [Automatic Resources](#automatic-resources)
-- [Group Scoping](#group-Scoping)
+- [Group Scoping](#group-scoping)
 - [Middleware](#middleware)
   - [Resource Middleware](#resource-middleware)
   - [Method Middleware](#method-middleware)
   - [Group Middleware](#group-middleware)
 
-[## Resources](#sections)
+## [Resources](#sections)
 
 A Resource Controller is a controller that either has a route method attribute attached to a method or uses a Automatic Registration Method. It's a controller with the necessary information needed for the Resource method to work. To create a resource you create a class then attach a Route Method Attribute to one of its methods.
 
@@ -70,7 +70,7 @@ A Manual Resource is a controller that is created by attaching route method attr
 
 A route method attribute is an attribute that takes three parameters.
 
-- path - The path of the route relative to the [[#Group Scoping|group scope]]
+- path - The path of the route relative to the [group scope](#group-scoping)
 - name - The name of the route that will be created
 - method - The http request **in lowercase** the method will respond to
 
@@ -147,7 +147,7 @@ RouteRegistry::group(string $path, Closure $closure);
 - The path is the pattern that will be used in the group method
 - The closure will be the function that will be called in the closure of the group method. When you use the resource method in the closure passed the resource path will be appended to the group path as usual
 
-[## Middleware](#sections)
+## [Middleware](#sections)
 
 You can use middleware in your app by using Use Middleware Attributes on methods and controllers and controller methods. You can tell the resource method to create the same middleware to be called before a request handler is called or before multiple request handlers are called.
 
